@@ -1,0 +1,7 @@
+use parse::ast::*;
+
+grammar;
+
+pub Document: Document = {
+    <s:"hello"> => Document::new()
+};

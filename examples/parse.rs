@@ -2,11 +2,11 @@ extern crate graphers;
 
 static SCHEMA: &'static str = "
 schema {
-   query: QueryRoot
+    query: QueryRoot
 }
 
 type QueryRoot {
-  someField: String
+    first_name: String
 }
 ";
 

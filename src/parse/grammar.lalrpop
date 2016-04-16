@@ -1,7 +1,118 @@
 use parse::ast::*;
+use parse::tok::{self, Tok};
 
-grammar;
+grammar<'input>(text: &'input str)["LALR(1)"];
 
 pub Document: Document = {
-    <s:"hello"> => Document::new()
+    <definitions:(Definition)+> => Document { definitions: definitions }
 };
+
+Definition: Definition = {
+    // OperationDefinition
+    // FragmentDefinition
+    TypeSystemDefinition
+};
+
+TypeSystemDefinition: Definition = {
+    SchemaDefinition,
+    TypeDefinition
+    // TypeExtensionDefinition
+    // DirectiveDefinition
+};
+
+SchemaDefinition: Definition = {
+    "schema" "{" <operations:(OperationTypeDefinition)+> "}" => {
+      let query = operations.iter().filter_map(|q| {
+        match q {
+          &OperationType::Query(ref type_name) => Some(type_name),
+          _ => None
+        }
+      }).collect::<Vec<_>>();
+
+      if query.len() > 1 {
+        panic!("schema must not contain more than one query definition");
+      }
+
+      Definition::Schema { query: query.get(0).map(|&v| v.clone()), mutation: None }
+    }
+};
+
+OperationTypeDefinition: OperationType = {
+    "query" ":" <named_type:TypeName> => {
+        OperationType::Query(named_type)
+    },
+
+    "mutation" ":" <named_type:TypeName> => {
+        OperationType::Mutation(named_type)
+    }
+};
+
+TypeName: TypeName = {
+    <name:Identifier> => { TypeName(name.to_string()) }
+};
+
+FieldName: FieldName = {
+    <name:Identifier> => { FieldName(name.to_string()) }
+};
+
+Identifier: &'input str = {
+    "schema" => { "schema" },
+    "query" => { "query" },
+    "mutation" => { "mutation" },
+    "type" => { "type" },
+    "implements" => { "Implements" },
+    "on" => { "on" },
+    <value:"identifier"> => { value },
+};
+
+TypeDefinition: Definition = {
+//     ScalarTypeDefinition
+    ObjectTypeDefinition
+//     InterfaceTypeDefinition
+//     UnionTypeDefinition
+//     EnumTypeDefinition
+//     InputObjectTypeDefinition
+};
+
+ObjectTypeDefinition: Definition = {
+    "type" <name:TypeName> <interfaces:(ImplementsInterfaces)?> "{" <fields:(FieldDefinition)+> "}" => {
+        Definition::Type { name: name, implements: interfaces.unwrap_or_else(|| Vec::new()), fields: fields }
+    }
+};
+
+ImplementsInterfaces: Vec<TypeName> = {
+    "implements" <types:(TypeName)+> => { types }
+};
+
+FieldDefinition: Field = {
+    <name:FieldName> ":" <type_name:TypeName> => {
+        Field { name: name, type_name: type_name }
+    }
+};
+
+extern {
+    type Location = usize;
+    type Error = tok::Error;
+    enum Tok<'input> {
+        "schema" => Tok::Schema,
+        "query" => Tok::Query,
+        "mutation" => Tok::Mutation,
+        "type" => Tok::Type,
+        "on" => Tok::On,
+        "implements" => Tok::Implements,
+        "identifier" => Tok::Identifier(<&'input str>),
+
+        "!" => Tok::Dollar,
+        "$" => Tok::Bang,
+        "(" => Tok::LParen,
+        ")" => Tok::RParen,
+        ":" => Tok::Colon,
+        "=" => Tok::Equals,
+        "@" => Tok::At,
+        "[" => Tok::LBracket,
+        "]" => Tok::RBracket,
+        "{" => Tok::LBrace,
+        "|" => Tok::Pipe,
+        "}" => Tok::RBrace,
+    }
+}

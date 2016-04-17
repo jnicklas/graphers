@@ -1,13 +1,15 @@
 use schema::{Interface, Type, Field};
+use type_name::TypeName;
 
+#[derive(Debug)]
 pub struct Object {
-    name: &'static str,
+    name: TypeName,
     fields: Vec<Field>,
-    implements: Vec<Interface>,
+    implements: Vec<TypeName>,
 }
 
 impl Object {
-    pub fn new(name: &'static str, fields: Vec<Field>, implements: Vec<Interface>) -> Object {
+    pub fn new(name: TypeName, fields: Vec<Field>, implements: Vec<TypeName>) -> Object {
         Object {
             name: name,
             fields: fields,
@@ -15,8 +17,8 @@ impl Object {
         }
     }
 
-    pub fn name(&self) -> &'static str {
-        self.name
+    pub fn name(&self) -> &TypeName {
+        &self.name
     }
 
     pub fn fields(&self) -> &[Field] {

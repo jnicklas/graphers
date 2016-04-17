@@ -1,3 +1,7 @@
+use type_name::TypeName;
+use field_name::FieldName;
+
+use schema::*;
 use parse::ast::*;
 use parse::tok::{self, Tok};
 
@@ -33,7 +37,7 @@ SchemaDefinition: Definition = {
         panic!("schema must not contain more than one query definition");
       }
 
-      Definition::Schema { query: query.get(0).map(|&v| v.clone()), mutation: None }
+      Definition::Schema(Schema::new(query.get(0).map(|&v| v.clone()), None))
     }
 };
 
@@ -76,7 +80,7 @@ TypeDefinition: Definition = {
 
 ObjectTypeDefinition: Definition = {
     "type" <name:TypeName> <interfaces:(ImplementsInterfaces)?> "{" <fields:(FieldDefinition)+> "}" => {
-        Definition::Type { name: name, implements: interfaces.unwrap_or_else(|| Vec::new()), fields: fields }
+        Definition::Object(Object::new(name, fields, interfaces.unwrap_or_else(|| Vec::new())))
     }
 };
 
@@ -86,7 +90,7 @@ ImplementsInterfaces: Vec<TypeName> = {
 
 FieldDefinition: Field = {
     <name:FieldName> ":" <type_name:TypeName> => {
-        Field { name: name, type_name: type_name }
+        Field::new(name, type_name)
     }
 };
 

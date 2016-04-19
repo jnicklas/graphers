@@ -4,10 +4,14 @@ mod tok;
 
 use std::cell::RefCell;
 use schema;
-use parse::ast::Document;
+use context::Context;
 
-pub fn parse(input: &str) -> Document {
+pub use parse::ast::Document;
+
+pub fn parse(input: &str) -> Context {
     let tokenizer = tok::Tokenizer::new(input, 0);
 
-    grammar::parse_Document(input, tokenizer).expect("failed to parse input")
+    let document = grammar::parse_Document(input, tokenizer).expect("failed to parse input");
+
+    Context::new(document)
 }

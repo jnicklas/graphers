@@ -37,7 +37,7 @@ pub enum Type {
     NonNull(NonNull),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Schema {
     query: Option<TypeName>,
     mutation: Option<TypeName>,

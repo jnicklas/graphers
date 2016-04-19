@@ -1,10 +1,16 @@
 mod grammar;
-mod ast;
+mod document;
+mod definition;
 mod tok;
 
-use context::Context;
+pub use parse::document::Document;
+pub use parse::definition::Definition;
 
-pub use parse::ast::Document;
+use context::Context;
+use type_name::TypeName;
+
+#[derive(Debug)]
+pub enum OperationType { Query(TypeName), Mutation(TypeName) }
 
 pub fn parse(input: &str) -> Context {
     let tokenizer = tok::Tokenizer::new(input, 0);

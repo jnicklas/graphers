@@ -1,5 +1,5 @@
-use type_name::TypeName;
-use schema::*;
+use parse::Definition;
+use schema::{Schema, Type};
 
 #[derive(Debug)]
 pub struct Document {
@@ -30,16 +30,4 @@ impl Document {
             }
         }).collect()
     }
-}
-
-#[derive(Debug)]
-pub enum Definition {
-    Schema(Schema),
-    Object(Object),
-}
-
-#[derive(Debug)]
-pub enum OperationType {
-    Query(TypeName),
-    Mutation(TypeName)
 }

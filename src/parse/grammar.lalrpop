@@ -2,7 +2,7 @@ use type_name::TypeName;
 use field_name::FieldName;
 
 use schema::*;
-use parse::ast::*;
+use parse::{Document, Definition, OperationType};
 use parse::tok::{self, Tok};
 
 grammar<'input>(text: &'input str)["LALR(1)"];

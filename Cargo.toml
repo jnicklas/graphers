@@ -1,11 +1,8 @@
 [package]
-authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
 name = "graphers"
 version = "0.1.0"
-build = "build.rs"
-
-[build-dependencies]
-lalrpop = "0.11.0"
+authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
 
 [dependencies]
-lalrpop-util = "0.11.0"
+graphers_core = { path = "./graphers_core" }
+graphers_parse = { path = "./graphers_parse" }

@@ -1,4 +1,4 @@
-use schema::Type;
+use super::Type;
 
 #[derive(Debug)]
 pub struct InputObject {

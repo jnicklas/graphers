@@ -1,0 +1,6 @@
+[package]
+name = "graphers_core"
+version = "0.1.0"
+authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
+
+[dependencies]

@@ -1,6 +1,6 @@
-use schema::Type;
+use super::Type;
 
 #[derive(Debug)]
-pub struct NonNull {
+pub struct List {
     value: Box<Type>
 }

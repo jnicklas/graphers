@@ -1,4 +1,4 @@
-use schema::*;
+use core::{Schema, Object};
 
 #[derive(Debug)]
 pub enum Definition {

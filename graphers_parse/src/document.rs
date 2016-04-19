@@ -1,5 +1,5 @@
-use parse::Definition;
-use schema::{Schema, Type};
+use super::Definition;
+use core::{Schema, Type};
 
 #[derive(Debug)]
 pub struct Document {

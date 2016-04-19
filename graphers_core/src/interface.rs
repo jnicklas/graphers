@@ -1,4 +1,4 @@
-use schema::Field;
+use super::Field;
 
 #[derive(Debug)]
 pub struct Interface {

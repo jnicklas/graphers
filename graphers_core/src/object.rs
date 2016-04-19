@@ -1,5 +1,4 @@
-use schema::{Field};
-use type_name::TypeName;
+use super::{Field, TypeName};
 
 #[derive(Debug, Clone)]
 pub struct Object {

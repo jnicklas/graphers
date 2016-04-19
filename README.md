@@ -1,0 +1,10 @@
+- graphers_core
+  - Schemas/Types/etc...
+- graphers_parse
+  - Parse queries and IDL
+- graphers_gen
+  - Generate Rust interfaces from Schema
+- graphers_query
+  - Execute queries against a schema
+- graphers_http
+  - Serves up graphql over HTTP

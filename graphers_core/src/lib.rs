@@ -9,6 +9,7 @@ mod non_null;
 mod type_name;
 mod field_name;
 mod ty;
+mod context;
 
 pub use type_name::TypeName;
 pub use field_name::FieldName;
@@ -21,6 +22,7 @@ pub use input_object::InputObject;
 pub use list::List;
 pub use non_null::NonNull;
 pub use ty::Type;
+pub use context::Context;
 
 #[derive(Debug, Clone)]
 pub struct Schema {

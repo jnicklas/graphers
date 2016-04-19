@@ -1,21 +1,21 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
-use type_name::TypeName;
-use field_name::FieldName;
-use schema::*;
-use parse::{Document, Definition, OperationType};
-use parse::tok::{self, Tok};
+use core::*;
+use super::OperationType;
+use definition::Definition;
+use document::Document;
+use tok::{self, Tok};
 extern crate lalrpop_util as __lalrpop_util;
 use self::__lalrpop_util::ParseError as __ParseError;
 
 mod __parse__Document {
     #![allow(non_snake_case, non_camel_case_types, unused_mut, unused_variables, unused_imports)]
 
-    use type_name::TypeName;
-    use field_name::FieldName;
-    use schema::*;
-    use parse::{Document, Definition, OperationType};
-    use parse::tok::{self, Tok};
+    use core::*;
+    use super::super::OperationType;
+    use definition::Definition;
+    use document::Document;
+    use tok::{self, Tok};
     extern crate lalrpop_util as __lalrpop_util;
     use self::__lalrpop_util::ParseError as __ParseError;
     use super::__ToTriple;

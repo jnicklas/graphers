@@ -1,7 +1,5 @@
-use type_name::TypeName;
-use schema::*;
+use super::*;
 use std::collections::BTreeMap;
-use parse::Document;
 
 pub struct Context {
     types: BTreeMap<TypeName, Type>,
@@ -9,14 +7,14 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(document: Document) -> Context {
+    pub fn new(schema: Schema, types: Vec<Type>) -> Context {
         // NOTE: why does this require a type annotation?
-        let mut map: BTreeMap<TypeName, Type> = document.types().into_iter().map(|t| (t.name().clone(), t)).collect();
+        let mut map: BTreeMap<TypeName, Type> = types.into_iter().map(|t| (t.name().clone(), t)).collect();
 
         map.insert(TypeName("String".to_string()), Type::String);
 
         Context {
-            schema: document.schema().clone(),
+            schema: schema,
             types: map,
         }
     }

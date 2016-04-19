@@ -1,8 +1,19 @@
-use super::Field;
+use super::{TypeName, Field};
 
-#[derive(Debug)]
+#[derive(Debug, Eq)]
 pub struct Interface {
-    name: &'static str,
+    name: TypeName,
     fields: Vec<Field>,
 }
 
+impl PartialEq for Interface {
+    fn eq(&self, other: &Self) -> bool {
+        self.name() == other.name()
+    }
+}
+
+impl Interface {
+    pub fn name(&self) -> &TypeName {
+        &self.name
+    }
+}

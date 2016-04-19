@@ -1,10 +1,16 @@
 use type_name::TypeName;
 use field_name::FieldName;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub struct Field {
     name: FieldName,
     type_name: TypeName,
+}
+
+impl PartialEq for Field {
+    fn eq(&self, other: &Self) -> bool {
+        self.name() == other.name()
+    }
 }
 
 impl Field {
@@ -14,5 +20,9 @@ impl Field {
 
     pub fn name(&self) -> &FieldName {
         &self.name
+    }
+
+    pub fn type_name(&self) -> &TypeName {
+        &self.type_name
     }
 }

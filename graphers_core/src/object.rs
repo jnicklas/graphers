@@ -1,10 +1,16 @@
 use super::{Field, TypeName};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub struct Object {
     name: TypeName,
     fields: Vec<Field>,
     implements: Vec<TypeName>,
+}
+
+impl PartialEq for Object {
+    fn eq(&self, other: &Self) -> bool {
+        self.name() == other.name()
+    }
 }
 
 impl Object {

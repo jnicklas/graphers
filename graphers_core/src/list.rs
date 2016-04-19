@@ -1,6 +1,6 @@
 use super::Type;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct List {
     value: Box<Type>
 }

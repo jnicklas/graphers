@@ -15,8 +15,10 @@ fn main() {
 
     let query_root = context.schema().query().expect("there should be a query");
     let query_root_object = context.resolve_object(&query_root).expect("there should be a query root");
+    let first_name_field = &query_root_object.fields().get(0).expect("query root should have a field named first name");
+    let first_name_type = context.resolve(first_name_field.type_name()).expect("string should exist");
 
     assert_eq!(query_root.to_string(), "QueryRoot");
-
-    assert_eq!(query_root_object.fields()[0].name().to_string(), "first_name");
+    assert_eq!(first_name_field.name().to_string(), "first_name");
+    assert_eq!(first_name_type, &graphers::Type::String);
 }

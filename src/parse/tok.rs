@@ -12,10 +12,7 @@ pub struct Error {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ErrorCode {
     UnrecognizedToken,
-    UnterminatedEscape,
     UnterminatedStringLiteral,
-    UnterminatedCode,
-    ExpectedStringLiteral,
 }
 
 fn error<T>(c: ErrorCode, l: usize) -> Result<T,Error> {
@@ -49,16 +46,9 @@ pub enum Tok<'input> {
 
     // Literals
     Identifier(&'input str),
-    IntValue,
-    FloatValue,
+    // IntValue,
+    // FloatValue,
     StringValue(&'input str),
-
-    // Ignored
-    UnicodeBOM,
-    WhiteSpace,
-    LineTerminator,
-    Comment,
-    Comma,
 }
 
 const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
@@ -122,7 +112,7 @@ impl<'input> Tokenizer<'input> {
 
                 Some((idx0, '.')) => {
                     match self.bump() {
-                        Some((idx1, '.')) => {
+                        Some((_idx1, '.')) => {
                             match self.bump() {
                                 Some((idx2, '.')) => {
                                     self.bump();
@@ -163,7 +153,7 @@ impl<'input> Tokenizer<'input> {
                     self.bump();
                     continue;
                 }
-                Some((idx0, '#')) => {
+                Some((_, '#')) => {
                     self.bump();
                     self.take_until(|c| c == '\n');
                     continue;

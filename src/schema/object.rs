@@ -1,7 +1,7 @@
-use schema::{Interface, Type, Field};
+use schema::{Field};
 use type_name::TypeName;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Object {
     name: TypeName,
     fields: Vec<Field>,

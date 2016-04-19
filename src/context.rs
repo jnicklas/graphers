@@ -10,7 +10,8 @@ pub struct Context {
 
 impl Context {
     pub fn new(document: Document) -> Context {
-        let mut map = BTreeMap::new();
+        // NOTE: why does this require a type annotation?
+        let mut map: BTreeMap<TypeName, Type> = document.types().into_iter().map(|t| (t.name().clone(), t)).collect();
 
         map.insert(TypeName("String".to_string()), Type::String);
 

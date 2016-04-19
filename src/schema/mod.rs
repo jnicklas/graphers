@@ -7,9 +7,6 @@ mod input_object;
 mod list;
 mod non_null;
 
-use std::collections::BTreeMap;
-use std::cell::RefCell;
-
 use type_name::TypeName;
 
 pub use schema::field::Field;
@@ -35,6 +32,15 @@ pub enum Type {
     InputObject(InputObject),
     List(List),
     NonNull(NonNull),
+}
+
+impl Type {
+    pub fn name(&self) -> &TypeName {
+        match self {
+            &Type::Object(ref object) => object.name(),
+            _ => panic!("type name not implemented!")
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

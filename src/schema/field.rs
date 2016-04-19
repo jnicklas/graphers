@@ -1,8 +1,7 @@
-use schema::Type;
 use type_name::TypeName;
 use field_name::FieldName;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Field {
     name: FieldName,
     type_name: TypeName,

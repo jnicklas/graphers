@@ -1,5 +1,4 @@
 use type_name::TypeName;
-use field_name::FieldName;
 use schema::*;
 
 #[derive(Debug)]
@@ -21,6 +20,15 @@ impl Document {
         }
 
         schema_definitions[0]
+    }
+
+    pub fn types(&self) -> Vec<Type> {
+        self.definitions.iter().filter_map(|definition| {
+            match definition {
+                &Definition::Object(ref object) => Some(Type::Object(object.clone())),
+                &Definition::Schema(_) => None,
+            }
+        }).collect()
     }
 }
 

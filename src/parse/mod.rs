@@ -2,8 +2,6 @@ mod grammar;
 mod ast;
 mod tok;
 
-use std::cell::RefCell;
-use schema;
 use context::Context;
 
 pub use parse::ast::Document;

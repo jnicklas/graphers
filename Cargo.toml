@@ -2,7 +2,11 @@
 name = "graphers"
 version = "0.1.0"
 authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 graphers_core = { path = "./graphers_core" }
 graphers_parse = { path = "./graphers_parse" }
+
+[build-dependencies]
+graphers_gen = { path = "./graphers_gen" }

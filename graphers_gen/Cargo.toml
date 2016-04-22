@@ -1,0 +1,13 @@
+[package]
+authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
+name = "graphers_gen"
+version = "0.1.0"
+
+[dependencies]
+build_compile = "0.1.0"
+
+[dependencies.graphers_core]
+path = "../graphers_core"
+
+[dependencies.graphers_parse]
+path = "../graphers_parse"

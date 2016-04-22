@@ -19,6 +19,10 @@ impl Context {
         }
     }
 
+    pub fn types(&self) -> &BTreeMap<TypeName, Type> {
+        &self.types
+    }
+
     pub fn schema(&self) -> &Schema {
         &self.schema
     }

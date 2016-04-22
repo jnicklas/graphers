@@ -9,6 +9,7 @@ mod non_null;
 mod type_name;
 mod field_name;
 mod ty;
+mod schema;
 mod context;
 
 pub use type_name::TypeName;
@@ -22,21 +23,5 @@ pub use input_object::InputObject;
 pub use list::List;
 pub use non_null::NonNull;
 pub use ty::Type;
+pub use schema::Schema;
 pub use context::Context;
-
-#[derive(Debug, Clone)]
-pub struct Schema {
-    query: Option<TypeName>,
-    mutation: Option<TypeName>,
-}
-
-impl Schema {
-    pub fn new(query: Option<TypeName>, mutation: Option<TypeName>) -> Schema {
-        Schema { query: query, mutation: mutation }
-    }
-
-    pub fn query(&self) -> Option<&TypeName> {
-        self.query.as_ref()
-    }
-}
-

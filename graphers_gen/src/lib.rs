@@ -26,9 +26,9 @@ impl build::Processor for Processor {
 }
 
 pub fn process_root() {
-    build::process_root("ql", &Processor)
+    build::process_root("graphql", &Processor)
 }
 
 pub fn process_dir<P: AsRef<Path>>(path: P) {
-    build::process_dir(path, "ql", &Processor)
+    build::process_dir(path, "graphql", &Processor)
 }

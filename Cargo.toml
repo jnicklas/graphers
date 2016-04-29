@@ -1,12 +1,20 @@
 [package]
-name = "graphers"
-version = "0.1.0"
 authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
 build = "build.rs"
-
-[dependencies]
-graphers_core = { path = "./graphers_core" }
-graphers_parse = { path = "./graphers_parse" }
+name = "graphers"
+version = "0.1.0"
 
 [build-dependencies]
-graphers_gen = { path = "./graphers_gen" }
+
+[build-dependencies.graphers_gen]
+path = "./graphers_gen"
+
+[dependencies]
+serde = "0.7.0"
+serde_json = "0.7.0"
+
+[dependencies.graphers_core]
+path = "./graphers_core"
+
+[dependencies.graphers_parse]
+path = "./graphers_parse"

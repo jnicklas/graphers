@@ -15,39 +15,42 @@ mod schema {
 
     pub struct PersonQuery<'a, T> where T: 'a + ResolvePerson {
         target: &'a T,
-        query: &'a Query,
+        query: &'a query::Query,
     }
 
     impl<'a, T> Serialize for PersonQuery<'a, T> where T: 'a + ResolvePerson {
         fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-            serializer.serialize_struct("Person", PersonStructVisitor {
+            serializer.serialize_map(PersonStructVisitor {
                 target: self.target,
-                query: self.query,
-                state: 0,
+                iter: self.query.fields().iter(),
             })
         }
     }
 
-    struct PersonStructVisitor<'a, T> where T: 'a + ResolvePerson {
+    struct PersonStructVisitor<'a, T, I> where T: 'a + ResolvePerson, I: Iterator<Item=&'a query::Field> {
         target: &'a T,
-        query: &'a Query,
-        state: u8,
+        iter: I,
     }
 
-    impl<'a, T> MapVisitor for PersonStructVisitor<'a, T> where T: 'a + ResolvePerson {
+    impl<'a, T, I> MapVisitor for PersonStructVisitor<'a, T, I> where T: 'a + ResolvePerson, I: Iterator<Item=&'a query::Field> {
         fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
-            match self.state {
-                0 => {
-                    self.state += 1;
-                    Ok(Some(try!(serializer.serialize_struct_elt("first_name", self.target.first_name()))))
-                }
-                1 => {
-                    self.state += 1;
-                    Ok(Some(try!(serializer.serialize_struct_elt("last_name", self.target.last_name()))))
-                }
-                _ => {
-                    Ok(None)
-                }
+            match self.iter.next() {
+                Some(ref field) => {
+                    match field.name().as_str() {
+                        "first_name" => {
+                            let value = self.target.first_name();
+                            Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), &value))))
+                        },
+                        "last_name" => {
+                            let value = self.target.last_name();
+                            Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), &value))))
+                        },
+                        name => {
+                            panic!("unknown field {}", name)
+                        }
+                    }
+                },
+                None => Ok(None)
             }
         }
     }
@@ -60,52 +63,50 @@ mod schema {
 
     pub struct RootQuery<'a, T> where T: 'a + ResolveRoot {
         target: &'a T,
-        query: &'a Query,
+        query: &'a query::Query,
     }
 
     impl<'a, T> Serialize for RootQuery<'a, T> where T: 'a + ResolveRoot {
         fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-            serializer.serialize_struct("Root", RootStructVisitor {
+            serializer.serialize_map(RootStructVisitor {
                 target: self.target,
-                query: self.query,
-                state: 0,
+                iter: self.query.fields().iter(),
             })
         }
     }
 
-    struct RootStructVisitor<'a, T> where T: 'a + ResolveRoot {
+    struct RootStructVisitor<'a, T, I> where T: 'a + ResolveRoot, I: Iterator<Item=&'a query::Field> {
         target: &'a T,
-        query: &'a Query,
-        state: u8,
+        iter: I,
     }
 
-    impl<'a, T> MapVisitor for RootStructVisitor<'a, T> where T: 'a + ResolveRoot {
+    impl<'a, T, I> MapVisitor for RootStructVisitor<'a, T, I> where T: 'a + ResolveRoot, I: Iterator<Item=&'a query::Field> {
         fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
-            match self.state {
-                0 => {
-                    self.state += 1;
-                    match self.target.person() {
-                        Some(ref person) => {
-                            let query = Query;
-                            let query_struct = PersonQuery { target: person, query: &query };
-                            Ok(Some(try!(serializer.serialize_struct_elt("person", &query_struct))))
+            match self.iter.next() {
+                Some(ref field) => {
+                    match field.name().as_str() {
+                        "person" => {
+                            let target = self.target.person().expect("must have person");
+                            let query_struct = PersonQuery { target: &target, query: &field.subquery().expect("ugh? no subquery") };
+                            Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), &query_struct))))
+                        },
+                        name => {
+                            panic!("unknown field {}", name)
                         }
-                        None => Ok(None)
                     }
-                }
-                _ => {
-                    Ok(None)
-                }
+                },
+                None => Ok(None)
             }
         }
     }
 
-    pub fn query<'a, T>(root: &'a T, query: &'a Query) -> RootQuery<'a, T> where T: 'a + ResolveRoot {
+    pub fn query<'a, T>(root: &'a T, query: &'a query::Query) -> RootQuery<'a, T> where T: 'a + ResolveRoot {
         RootQuery { target: root, query: query, }
     }
 }
 
 use schema::*;
+use graphers::*;
 
 #[derive(Debug)]
 struct Root;
@@ -138,7 +139,14 @@ impl ResolveRoot for Root {
 }
 
 fn main() {
-    let result = serde_json::to_string(&schema::query(&Root, &::graphers::Query)).expect("failed to serialize");
+    let query = query::Query::new(vec![
+        query::Field::new(FieldName::new("person"), None, vec![], Some(query::Query::new(vec![
+            query::Field::new(FieldName::new("first_name"), None, vec![], None),
+            query::Field::new(FieldName::new("last_name"), None, vec![], None),
+        ]))),
+    ]);
+
+    let result = serde_json::to_string(&schema::query(&Root, &query)).expect("failed to serialize");
 
     println!("{}", result);
 }

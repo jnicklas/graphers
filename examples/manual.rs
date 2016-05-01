@@ -13,22 +13,24 @@ mod schema {
         fn last_name(&self) -> String;
     }
 
-    pub struct PersonQuery<T> where T: ResolvePerson {
-        target: T,
-        query: Query,
+    pub struct PersonQuery<'a, T> where T: 'a + ResolvePerson {
+        target: &'a T,
+        query: &'a Query,
     }
 
-    impl<T> Serialize for PersonQuery<T> where T: ResolvePerson {
+    impl<'a, T> Serialize for PersonQuery<'a, T> where T: 'a + ResolvePerson {
         fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
             serializer.serialize_struct("Person", PersonStructVisitor {
-                value: self,
+                target: self.target,
+                query: self.query,
                 state: 0,
             })
         }
     }
 
     struct PersonStructVisitor<'a, T> where T: 'a + ResolvePerson {
-        value: &'a PersonQuery<T>,
+        target: &'a T,
+        query: &'a Query,
         state: u8,
     }
 
@@ -37,11 +39,11 @@ mod schema {
             match self.state {
                 0 => {
                     self.state += 1;
-                    Ok(Some(try!(serializer.serialize_struct_elt("first_name", self.value.target.first_name()))))
+                    Ok(Some(try!(serializer.serialize_struct_elt("first_name", self.target.first_name()))))
                 }
                 1 => {
                     self.state += 1;
-                    Ok(Some(try!(serializer.serialize_struct_elt("last_name", self.value.target.last_name()))))
+                    Ok(Some(try!(serializer.serialize_struct_elt("last_name", self.target.last_name()))))
                 }
                 _ => {
                     Ok(None)
@@ -56,22 +58,24 @@ mod schema {
         fn person(&self) -> Option<Self::Person>;
     }
 
-    pub struct RootQuery<T> where T: ResolveRoot {
-        target: T,
-        query: Query,
+    pub struct RootQuery<'a, T> where T: 'a + ResolveRoot {
+        target: &'a T,
+        query: &'a Query,
     }
 
-    impl<T> Serialize for RootQuery<T> where T: ResolveRoot {
+    impl<'a, T> Serialize for RootQuery<'a, T> where T: 'a + ResolveRoot {
         fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
             serializer.serialize_struct("Root", RootStructVisitor {
-                value: self,
+                target: self.target,
+                query: self.query,
                 state: 0,
             })
         }
     }
 
     struct RootStructVisitor<'a, T> where T: 'a + ResolveRoot {
-        value: &'a RootQuery<T>,
+        target: &'a T,
+        query: &'a Query,
         state: u8,
     }
 
@@ -80,10 +84,10 @@ mod schema {
             match self.state {
                 0 => {
                     self.state += 1;
-                    match self.value.target.person() {
-                        Some(person) => {
+                    match self.target.person() {
+                        Some(ref person) => {
                             let query = Query;
-                            let query_struct = PersonQuery { target: person, query: query };
+                            let query_struct = PersonQuery { target: person, query: &query };
                             Ok(Some(try!(serializer.serialize_struct_elt("person", &query_struct))))
                         }
                         None => Ok(None)
@@ -96,7 +100,7 @@ mod schema {
         }
     }
 
-    pub fn query<T>(root: T, query: Query) -> RootQuery<T> where T: ResolveRoot {
+    pub fn query<'a, T>(root: &'a T, query: &'a Query) -> RootQuery<'a, T> where T: 'a + ResolveRoot {
         RootQuery { target: root, query: query, }
     }
 }
@@ -134,7 +138,7 @@ impl ResolveRoot for Root {
 }
 
 fn main() {
-    let result = serde_json::to_string(&schema::query(Root, ::graphers::Query)).expect("failed to serialize");
+    let result = serde_json::to_string(&schema::query(&Root, &::graphers::Query)).expect("failed to serialize");
 
     println!("{}", result);
 }

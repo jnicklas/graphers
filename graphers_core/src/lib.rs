@@ -11,7 +11,7 @@ mod field_name;
 mod ty;
 mod schema;
 mod context;
-mod query;
+pub mod query;
 
 pub use type_name::TypeName;
 pub use field_name::FieldName;

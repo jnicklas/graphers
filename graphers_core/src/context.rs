@@ -9,13 +9,7 @@ pub struct Context {
 impl Context {
     pub fn new(schema: Schema, types: Vec<TypeDefinition>) -> Context {
         // NOTE: why does this require a type annotation?
-        let mut map: BTreeMap<TypeName, TypeDefinition> = types.into_iter().map(|t| (t.name().clone(), t)).collect();
-
-        map.insert(TypeName("Int".to_string()), TypeDefinition::Int);
-        map.insert(TypeName("Float".to_string()), TypeDefinition::Float);
-        map.insert(TypeName("String".to_string()), TypeDefinition::String);
-        map.insert(TypeName("Boolean".to_string()), TypeDefinition::Boolean);
-        map.insert(TypeName("Id".to_string()), TypeDefinition::Id);
+        let map: BTreeMap<TypeName, TypeDefinition> = types.into_iter().map(|t| (t.name().clone(), t)).collect();
 
         Context {
             schema: schema,

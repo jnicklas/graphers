@@ -18,6 +18,11 @@ fn option_wrap(input: Cow<str>, non_nullable: bool) -> Cow<str> {
 
 fn format_result_type(ty: &core::Type, non_nullable: bool) -> Cow<str> {
     match ty {
+        &core::Type::Int => "u32".into(),
+        &core::Type::Float => "f32".into(),
+        &core::Type::String => "Cow<str>".into(),
+        &core::Type::Boolean => "bool".into(),
+        &core::Type::Id => "Cow<str>".into(),
         &core::Type::NamedType(ref name) => option_wrap(name.as_str().into(), non_nullable),
         &core::Type::List(ref ty) => option_wrap(format!("Vec<{}>", format_result_type(ty, false)).into(), non_nullable),
         &core::Type::NonNull(ref ty) => format_result_type(ty, true),
@@ -32,7 +37,7 @@ impl build::Processor for Processor {
             if let &core::TypeDefinition::Object(ref object) = ty {
                 try!(write!(output, "pub trait Resolve{} {{\n", name));
                 for field in object.fields() {
-                    try!(write!(output, "  pub fn {}() -> {};\n", field.name(), format_result_type(&field.ty(), false)));
+                    try!(write!(output, "  pub fn {}(&self) -> {};\n", field.name(), format_result_type(&field.ty(), false)));
                 }
                 try!(write!(output, "}}\n\n"));
             }

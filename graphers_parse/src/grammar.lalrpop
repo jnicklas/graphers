@@ -51,7 +51,16 @@ OperationTypeDefinition: OperationType = {
 };
 
 Type: Type = {
-    <type_name:TypeName> => { Type::NamedType(type_name) },
+    <type_name:TypeName> => {
+        match type_name.as_str() {
+            "Int" => Type::Int,
+            "Float" => Type::Float,
+            "String" => Type::String,
+            "Boolean" => Type::Boolean,
+            "Id" => Type::Id,
+            _ => Type::NamedType(type_name)
+        }
+    },
     "[" <ty:Type> "]" => { Type::List(Box::new(ty)) },
     <ty:Type> "!" => { Type::NonNull(Box::new(ty)) }
 };

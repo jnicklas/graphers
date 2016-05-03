@@ -2,11 +2,6 @@ use super::*;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TypeDefinition {
-    Int,
-    Float,
-    String,
-    Boolean,
-    Id,
     Scalar(TypeName),
     Object(Object),
     Interface(Interface),

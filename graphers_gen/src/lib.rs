@@ -12,7 +12,7 @@ impl build::Processor for Processor {
         let context = parse::parse(input.text());
 
         for (name, ty) in context.types().iter() {
-            if let &core::Type::Object(ref object) = ty {
+            if let &core::TypeDefinition::Object(ref object) = ty {
                 try!(write!(output, "pub trait {} {{\n", name));
                 for field in object.fields() {
                     try!(write!(output, "  pub fn {}() -> {};\n", field.name(), field.type_name()));

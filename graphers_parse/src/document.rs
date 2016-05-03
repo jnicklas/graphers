@@ -1,5 +1,5 @@
 use super::Definition;
-use core::{Schema, Type};
+use core::{Schema, TypeDefinition};
 
 #[derive(Debug)]
 pub struct Document {
@@ -22,10 +22,10 @@ impl Document {
         schema_definitions[0]
     }
 
-    pub fn types(&self) -> Vec<Type> {
+    pub fn types(&self) -> Vec<TypeDefinition> {
         self.definitions.iter().filter_map(|definition| {
             match definition {
-                &Definition::Object(ref object) => Some(Type::Object(object.clone())),
+                &Definition::Object(ref object) => Some(TypeDefinition::Object(object.clone())),
                 &Definition::Schema(_) => None,
             }
         }).collect()

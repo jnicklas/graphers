@@ -20,5 +20,5 @@ fn main() {
 
     assert_eq!(query_root.to_string(), "QueryRoot");
     assert_eq!(first_name_field.name().to_string(), "first_name");
-    assert_eq!(first_name_type, &graphers::Type::String);
+    assert_eq!(first_name_type, &graphers::TypeDefinition::String);
 }

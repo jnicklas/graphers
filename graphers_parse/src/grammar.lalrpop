@@ -50,6 +50,12 @@ OperationTypeDefinition: OperationType = {
     }
 };
 
+Type: Type = {
+    <type_name:TypeName> => { Type::NamedType(type_name) },
+    "[" <ty:Type> "]" => { Type::List(Box::new(ty)) },
+    <ty:Type> "!" => { Type::NonNull(Box::new(ty)) }
+};
+
 TypeName: TypeName = {
     <name:Identifier> => { TypeName(name.to_string()) }
 };

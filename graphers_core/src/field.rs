@@ -1,10 +1,10 @@
-use type_name::TypeName;
+use ty::Type;
 use field_name::FieldName;
 
 #[derive(Debug, Clone, Eq)]
 pub struct Field {
     name: FieldName,
-    type_name: TypeName,
+    ty: Type,
 }
 
 impl PartialEq for Field {
@@ -14,15 +14,15 @@ impl PartialEq for Field {
 }
 
 impl Field {
-    pub fn new(name: FieldName, type_name: TypeName) -> Field {
-        Field { name: name, type_name: type_name }
+    pub fn new(name: FieldName, ty: Type) -> Field {
+        Field { name: name, ty: ty }
     }
 
     pub fn name(&self) -> &FieldName {
         &self.name
     }
 
-    pub fn type_name(&self) -> &TypeName {
-        &self.type_name
+    pub fn ty(&self) -> &Type {
+        &self.ty
     }
 }

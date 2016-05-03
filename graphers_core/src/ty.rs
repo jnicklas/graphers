@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
     NamedType(TypeName),
     List(Box<Type>),

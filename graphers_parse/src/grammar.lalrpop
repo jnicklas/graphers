@@ -69,7 +69,7 @@ Identifier: &'input str = {
     "query" => { "query" },
     "mutation" => { "mutation" },
     "type" => { "type" },
-    "implements" => { "Implements" },
+    "implements" => { "implements" },
     "on" => { "on" },
     <value:"identifier"> => { value },
 };
@@ -94,8 +94,8 @@ ImplementsInterfaces: Vec<TypeName> = {
 };
 
 FieldDefinition: Field = {
-    <name:FieldName> ":" <type_name:TypeName> => {
-        Field::new(name, type_name)
+    <name:FieldName> ":" <ty:Type> => {
+        Field::new(name, ty)
     }
 };
 

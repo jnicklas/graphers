@@ -1,4 +1,5 @@
 use ty::Type;
+use type_name::TypeName;
 use field_name::FieldName;
 
 #[derive(Debug, Clone, Eq)]
@@ -24,5 +25,9 @@ impl Field {
 
     pub fn ty(&self) -> &Type {
         &self.ty
+    }
+
+    pub fn named_type(&self) -> Option<&TypeName> {
+        self.ty.named_type()
     }
 }

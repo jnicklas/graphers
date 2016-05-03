@@ -1,4 +1,5 @@
 use super::{Field, TypeName};
+use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, Eq)]
 pub struct Object {
@@ -30,4 +31,7 @@ impl Object {
         &self.fields
     }
 
+    pub fn named_types(&self) -> BTreeSet<&TypeName> {
+        self.fields.iter().filter_map(|f| f.named_type()).collect()
+    }
 }

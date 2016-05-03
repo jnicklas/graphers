@@ -15,7 +15,7 @@ struct QueryRoot;
 struct Person {
   first_name: String,
   last_name: String,
-  age: u32,
+  age: i32,
 }
 
 impl ResolvePerson for Person {
@@ -33,7 +33,7 @@ impl ResolvePerson for Person {
         None
     }
 
-    fn age(&self) -> u32 {
+    fn age(&self) -> i32 {
         self.age
     }
 }
@@ -51,14 +51,14 @@ impl ResolveQueryRoot for QueryRoot {
 }
 
 fn main() {
-    // let query = query::Query::new(vec![
-    //     query::Field::new(FieldName::new("person"), None, vec![], Some(query::Query::new(vec![
-    //         query::Field::new(FieldName::new("first_name"), None, vec![], None),
-    //         query::Field::new(FieldName::new("last_name"), None, vec![], None),
-    //     ]))),
-    // ]);
+    let query = query::Query::new(vec![
+        query::Field::new(FieldName::new("person"), None, vec![], Some(query::Query::new(vec![
+            query::Field::new(FieldName::new("first_name"), None, vec![], None),
+            query::Field::new(FieldName::new("last_name"), None, vec![], None),
+        ]))),
+    ]);
 
-    // let result = serde_json::to_string(&test::query(&QueryRoot &query)).expect("failed to serialize");
+    let result = serde_json::to_string(&test::query(QueryRoot, &query)).expect("failed to serialize");
 
-    // println!("{}", result);
+    println!("{}", result);
 }

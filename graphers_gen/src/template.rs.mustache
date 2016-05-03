@@ -1,0 +1,64 @@
+extern crate graphers_core;
+extern crate serde;
+
+use serde::{Serialize, Serializer};
+use serde::ser::{MapVisitor};
+
+use self::graphers_core::*;
+
+{{#objects}}
+pub trait Resolve{{name}} {
+    {{#named_types}}
+    type {{name}}: Resolve{{name}};
+    {{/named_types}}
+
+    {{#fields}}
+    fn {{name}}(&self) -> {{{ty}}};
+    {{/fields}}
+}
+
+pub struct {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
+    target: T,
+    query: &'a query::Query,
+}
+
+impl<'a, T> Serialize for {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_map({{name}}StructVisitor {
+            target: &self.target,
+            iter: self.query.fields().iter(),
+        })
+    }
+}
+
+struct {{name}}StructVisitor<'a, T, I> where T: 'a + Resolve{{name}}, I: Iterator<Item=&'a query::Field> {
+    target: &'a T,
+    iter: I,
+}
+
+impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Resolve{{name}}, I: Iterator<Item=&'a query::Field> {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+        match self.iter.next() {
+            Some(ref field) => {
+                match field.name().as_str() {
+                    {{#fields}}
+                    "{{name}}" => {
+                        let target = self.target.{{name}}();
+                        {{{preserialize}}}
+                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
+                    },
+                    {{/fields}}
+                    name => panic!("unknown field {}", name),
+                }
+            },
+            None => Ok(None)
+        }
+    }
+}
+{{/objects}}
+
+{{#query_root}}
+pub fn query<'a, T>(root: T, query: &'a query::Query) -> {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
+    {{name}}Query { target: root, query: query }
+}
+{{/query_root}}

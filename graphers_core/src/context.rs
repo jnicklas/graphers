@@ -1,4 +1,5 @@
 use super::*;
+use schema::*;
 use std::collections::BTreeMap;
 
 pub struct Context {

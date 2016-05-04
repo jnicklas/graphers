@@ -1,5 +1,6 @@
 use super::Definition;
-use core::{Schema, TypeDefinition};
+use core::{TypeDefinition};
+use core::schema::Schema;
 
 #[derive(Debug)]
 pub struct Document {

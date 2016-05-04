@@ -3,7 +3,7 @@ schema {
 }
 
 type QueryRoot {
-    person: Person!
+    person(id: Id!): Person!
 }
 
 type Person {

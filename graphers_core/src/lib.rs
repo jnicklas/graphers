@@ -8,8 +8,8 @@ mod type_name;
 mod field_name;
 mod ty;
 mod type_definition;
-mod schema;
 mod context;
+pub mod schema;
 pub mod query;
 
 pub use type_name::TypeName;
@@ -22,6 +22,5 @@ pub use enums::{Enum, EnumVariant};
 pub use input_object::InputObject;
 pub use ty::Type;
 pub use type_definition::TypeDefinition;
-pub use schema::Schema;
 pub use context::Context;
 pub use query::Query;

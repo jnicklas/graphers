@@ -1,4 +1,5 @@
 use core::*;
+use core::schema::*;
 use super::OperationType;
 use definition::Definition;
 use document::Document;
@@ -103,9 +104,17 @@ ImplementsInterfaces: Vec<TypeName> = {
 };
 
 FieldDefinition: Field = {
-    <name:FieldName> ":" <ty:Type> => {
-        Field::new(name, ty)
+    <name:FieldName> <args:(FieldArguments)?> ":" <ty:Type> => {
+        Field::new(name, ty, args.unwrap_or(Vec::new()))
     }
+};
+
+FieldArguments: Vec<Argument> = {
+    "(" <args:(FieldArgument)*> ")" => { args }
+};
+
+FieldArgument: Argument = {
+    <name:FieldName> ":" <ty:Type> => { Argument::new(name, ty) }
 };
 
 extern {

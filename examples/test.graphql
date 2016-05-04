@@ -11,4 +11,5 @@ type Person {
     last_name: String!
     friend: Person
     age: Int!
+    tags: [String!]!
 }

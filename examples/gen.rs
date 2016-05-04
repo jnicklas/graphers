@@ -36,6 +36,10 @@ impl ResolvePerson for Person {
     fn age(&self) -> i32 {
         self.age
     }
+
+    fn tags(&self) -> Vec<Cow<str>> {
+        vec!["foo".into(), "bar".into()]
+    }
 }
 
 impl ResolveQueryRoot for QueryRoot {
@@ -55,6 +59,7 @@ fn main() {
         query::Field::new(FieldName::new("person"), None, vec![], Some(query::Query::new(vec![
             query::Field::new(FieldName::new("first_name"), None, vec![], None),
             query::Field::new(FieldName::new("last_name"), None, vec![], None),
+            query::Field::new(FieldName::new("tags"), None, vec![], None),
         ]))),
     ]);
 

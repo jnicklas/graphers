@@ -3,57 +3,28 @@ extern crate graphers_core as core;
 extern crate graphers_parse as parse;
 extern crate mustache;
 
+mod rust_type;
+
 use std::io::Write;
 use std::path::Path;
-use std::borrow::Cow;
+use rust_type::RustType;
 
 struct Processor;
 
 static TEMPLATE: &'static str = include_str!("./template.rs.mustache");
 
-fn option_wrap(input: Cow<str>, non_nullable: bool) -> Cow<str> {
-    if non_nullable {
-        input
-    } else {
-        format!("Option<{}>", input).into()
-    }
-}
-
-fn preserialize_wrap(input: Cow<str>, non_nullable: bool) -> Cow<str> {
-    if non_nullable {
-        input
-    } else {
-        format!("target.map(|target| {})", input).into()
-    }
-}
-
-fn preserialize_inner(ty: &core::Type, non_nullable: bool) -> Cow<str> {
+fn preserialize(ty: &RustType) -> String {
     match ty {
-        &core::Type::NamedType(ref name) => {
-            preserialize_wrap(format!("{}Query {{ target: target, query: field.subquery().expect(\"must have subquery for object types\") }}", name).into(), non_nullable)
+        &RustType::NamedType(ref name) => {
+            format!("{}Query {{ target: target, query: field.subquery().expect(\"must have subquery for object types\") }}", name)
         },
-        &core::Type::List(ref ty) => {
-            preserialize_wrap(format!("target.map(|target| {{ {} }}", format_result_type(ty, false)).into(), non_nullable)
+        &RustType::List(ref ty) => {
+            format!("target.into_iter().map(|target| {{ {} }}).collect::<Vec<_>>()", preserialize(ty))
         },
-        &core::Type::NonNull(ref ty) => preserialize_inner(ty, true),
-        _ => preserialize_wrap("target".into(), non_nullable)
-    }
-}
-
-fn preserialize(field: &core::Field) -> String {
-    format!("let target = {};", preserialize_inner(field.ty(), false))
-}
-
-fn format_result_type(ty: &core::Type, non_nullable: bool) -> Cow<str> {
-    match ty {
-        &core::Type::Int => "i32".into(),
-        &core::Type::Float => "f32".into(),
-        &core::Type::String => "::std::borrow::Cow<str>".into(),
-        &core::Type::Boolean => "bool".into(),
-        &core::Type::Id => "::std::borrow::Cow<str>".into(),
-        &core::Type::NamedType(ref name) => option_wrap(format!("Self::{}", name).into(), non_nullable),
-        &core::Type::List(ref ty) => option_wrap(format!("Vec<{}>", format_result_type(ty, false)).into(), non_nullable),
-        &core::Type::NonNull(ref ty) => format_result_type(ty, true),
+        &RustType::Option(ref ty) => {
+            format!("target.map(|target| {{ {} }})", preserialize(ty))
+        },
+        _ => "target".into()
     }
 }
 
@@ -74,10 +45,11 @@ impl build::Processor for Processor {
                         .insert_vec("fields", |mut builder| {
                             for field in object.fields() {
                                 builder = builder.push_map(|builder| {
+                                    let rust_type = RustType::from(field.ty().clone());
                                     builder
                                         .insert_str("name", field.name())
-                                        .insert_str("ty", format_result_type(field.ty(), false))
-                                        .insert_str("preserialize", preserialize(&field))
+                                        .insert_str("ty", format!("{}", rust_type))
+                                        .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
                                 })
                             }
                             builder

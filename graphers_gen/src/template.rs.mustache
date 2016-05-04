@@ -1,9 +1,9 @@
 extern crate graphers_core;
 extern crate serde;
 
+use std::borrow::Cow;
 use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
-
 use self::graphers_core::*;
 
 {{#objects}}

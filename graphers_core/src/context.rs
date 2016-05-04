@@ -4,16 +4,18 @@ use std::collections::BTreeMap;
 
 pub struct Context {
     types: BTreeMap<TypeName, TypeDefinition>,
-    schema: Schema,
+    schema: Option<Schema>,
+    query: Option<Query>,
 }
 
 impl Context {
-    pub fn new(schema: Schema, types: Vec<TypeDefinition>) -> Context {
+    pub fn new(schema: Option<Schema>, query: Option<Query>, types: Vec<TypeDefinition>) -> Context {
         // NOTE: why does this require a type annotation?
         let map: BTreeMap<TypeName, TypeDefinition> = types.into_iter().map(|t| (t.name().clone(), t)).collect();
 
         Context {
             schema: schema,
+            query: query,
             types: map,
         }
     }
@@ -22,8 +24,12 @@ impl Context {
         &self.types
     }
 
-    pub fn schema(&self) -> &Schema {
-        &self.schema
+    pub fn schema(&self) -> Option<&Schema> {
+        self.schema.as_ref()
+    }
+
+    pub fn query(&self) -> Option<&Query> {
+        self.query.as_ref()
     }
 
     pub fn resolve(&self, name: &TypeName) -> Option<&TypeDefinition> {

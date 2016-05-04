@@ -84,7 +84,7 @@ impl build::Processor for Processor {
             builder
         });
 
-        if let Some(query) = context.schema().query() {
+        if let Some(query) = context.schema().and_then(|s| s.query()) {
             builder = builder.insert_vec("query_root", |builder| {
                 builder.push_map(|builder| builder.insert_str("name", &query))
             });

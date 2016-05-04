@@ -12,9 +12,51 @@ pub Document: Document = {
 };
 
 Definition: Definition = {
-    // OperationDefinition
+    OperationDefinition,
     // FragmentDefinition
-    TypeSystemDefinition
+    TypeSystemDefinition,
+};
+
+OperationDefinition: Definition = {
+    <operation:OperationType> <fields:SelectionSet> => {
+        match operation {
+            OperationType::Query => Definition::Query(query::Query::new(fields)),
+            _ => panic!("mutation is not yet supported"),
+        }
+    }
+};
+
+SelectionSet: Vec<query::Field> = {
+    "{" <fields:(Field)*> "}" => { fields }
+};
+
+Field: query::Field = {
+    <alias:(Alias)?> <name:FieldName> <arguments:(Arguments)?> <fields:(SelectionSet)?> => {
+        query::Field::new(name, alias, arguments.unwrap_or(Vec::new()), fields.map(|f| query::Query::new(f)))
+    }
+};
+
+Arguments: Vec<query::Argument> = {
+    "(" <arguments:(Argument)*> ")" => { arguments }
+};
+
+Argument: query::Argument = {
+    <name:FieldName> ":" <value:Value> => { query::Argument::new(name, value) }
+};
+
+Alias: FieldName = {
+    <alias:FieldName> ":" => alias
+};
+
+Value: query::Value = {
+    <value:"String"> => query::Value::String(value.into())
+    // ConstVariable
+    // IntValue
+    // FloatValue
+    // BooleanValue
+    // EnumValue
+    // ListValueConst
+    // ObjectValueConst
 };
 
 TypeSystemDefinition: Definition = {
@@ -26,29 +68,30 @@ TypeSystemDefinition: Definition = {
 
 SchemaDefinition: Definition = {
     "schema" "{" <operations:(OperationTypeDefinition)+> "}" => {
-      let query = operations.iter().filter_map(|q| {
-        match q {
-          &OperationType::Query(ref type_name) => Some(type_name),
-          _ => None
+      let mut query = Vec::new();
+
+      for (operation, name) in operations {
+        match operation {
+          OperationType::Query => query.push(name),
+          _ => (),
         }
-      }).collect::<Vec<_>>();
+      }
 
       if query.len() > 1 {
         panic!("schema must not contain more than one query definition");
       }
 
-      Definition::Schema(Schema::new(query.get(0).map(|&v| v.clone()), None))
+      Definition::Schema(Schema::new(query.pop(), None))
     }
 };
 
-OperationTypeDefinition: OperationType = {
-    "query" ":" <named_type:TypeName> => {
-        OperationType::Query(named_type)
-    },
+OperationTypeDefinition: (OperationType, TypeName) = {
+    <operation:OperationType> ":" <name:TypeName> => { (operation, name) }
+};
 
-    "mutation" ":" <named_type:TypeName> => {
-        OperationType::Mutation(named_type)
-    }
+OperationType: OperationType = {
+    "query" => { OperationType::Query },
+    "mutation" => { OperationType::Mutation },
 };
 
 Type: Type = {
@@ -128,6 +171,7 @@ extern {
         "on" => Tok::On,
         "implements" => Tok::Implements,
         "identifier" => Tok::Identifier(<&'input str>),
+        "String" => Tok::StringValue(<&'input str>),
 
         "!" => Tok::Dollar,
         "$" => Tok::Bang,

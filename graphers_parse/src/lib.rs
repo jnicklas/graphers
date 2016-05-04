@@ -9,15 +9,27 @@ pub use document::Document;
 pub use definition::Definition;
 
 use core::Context;
-use core::TypeName;
+use core::TypeDefinition;
 
-#[derive(Debug)]
-pub enum OperationType { Query(TypeName), Mutation(TypeName) }
+#[derive(Clone, Copy, Debug)]
+pub enum OperationType { Query, Mutation }
 
 pub fn parse(input: &str) -> Context {
     let tokenizer = tok::Tokenizer::new(input, 0);
 
     let document = grammar::parse_Document(input, tokenizer).expect("failed to parse input");
 
-    Context::new(document.schema().clone(), document.types())
+    let mut schema = None;
+    let mut query = None;
+    let mut types = Vec::with_capacity(document.definitions.len());
+
+    for definition in document.definitions {
+        match definition {
+            Definition::Object(o) => types.push(TypeDefinition::Object(o)),
+            Definition::Schema(s) => schema = Some(s),
+            Definition::Query(q) => query = Some(q),
+        }
+    }
+
+    Context::new(schema, query, types)
 }

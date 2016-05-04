@@ -5,7 +5,6 @@ extern crate serde_json;
 mod test;
 
 use test::*;
-use graphers::*;
 use std::borrow::Cow;
 
 #[derive(Debug)]
@@ -61,16 +60,19 @@ impl ResolveQueryRoot for QueryRoot {
 }
 
 fn main() {
-    let query = query::Query::new(vec![
-        query::Field::new(FieldName::new("person"), None, vec![query::Argument::new(FieldName::new("id"), query::Value::String("12345".into()))], Some(query::Query::new(vec![
-            query::Field::new(FieldName::new("id"), None, vec![], None),
-            query::Field::new(FieldName::new("first_name"), None, vec![], None),
-            query::Field::new(FieldName::new("last_name"), None, vec![], None),
-            query::Field::new(FieldName::new("tags"), None, vec![], None),
-        ]))),
-    ]);
+    let doc = "
+        query {
+            person(id: \"12345\") {
+                first_name,
+                last_name,
+                tags,
+            }
+        }
+    ";
+    let context = graphers::parse(doc);
+    let query = context.query().expect("should define a query");
 
-    let result = serde_json::to_string(&test::query(QueryRoot, &query)).expect("failed to serialize");
+    let result = serde_json::to_string(&test::query(QueryRoot, query)).expect("failed to serialize");
 
     println!("{}", result);
 }

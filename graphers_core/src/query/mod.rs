@@ -4,6 +4,7 @@ mod value;
 
 pub use query::value::Value;
 
+#[derive(Debug)]
 pub struct Query {
     fields: Vec<Field>
 }
@@ -27,6 +28,7 @@ impl Query {
     }
 }
 
+#[derive(Debug)]
 pub struct Field {
     name: FieldName,
     alias: Option<FieldName>,
@@ -59,6 +61,10 @@ impl Field {
         self.subquery.as_ref()
     }
 
+    pub fn arguments(&self) -> &[Argument] {
+        &self.arguments
+    }
+
     pub fn require(&self, name: &FieldName) -> &Value {
         self.get(name).expect("require argument")
     }
@@ -74,6 +80,7 @@ impl Field {
     }
 }
 
+#[derive(Debug)]
 pub struct Argument {
     name: FieldName,
     value: Value,

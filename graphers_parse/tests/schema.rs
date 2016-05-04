@@ -15,7 +15,8 @@ fn test_basic_schema() {
         }
     ");
 
-    let query_root = context.schema().query().expect("there should be a query");
+    let schema = context.schema().expect("must have schema");
+    let query_root = schema.query().expect("there should be a query");
     let query_root_object = context.resolve_object(&query_root).expect("there should be a query root");
     let first_name_field = &query_root_object.fields().get(0).expect("query root should have a field named first name");
 
@@ -40,7 +41,8 @@ fn test_field_arguments() {
         }
     ");
 
-    let query_root = context.schema().query().expect("there should be a query");
+    let schema = context.schema().expect("must have schema");
+    let query_root = schema.query().expect("there should be a query");
     let query_root_object = context.resolve_object(&query_root).expect("there should be a query root");
     let person_field = &query_root_object.fields().get(0).expect("query root should have a field");
 

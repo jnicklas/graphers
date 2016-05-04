@@ -1,5 +1,9 @@
 use field_name::FieldName;
 
+mod value;
+
+pub use query::value::Value;
+
 pub struct Query {
     fields: Vec<Field>
 }
@@ -26,7 +30,7 @@ impl Query {
 pub struct Field {
     name: FieldName,
     alias: Option<FieldName>,
-    _arguments: Vec<Argument>,
+    arguments: Vec<Argument>,
     subquery: Option<Query>,
 }
 
@@ -35,7 +39,7 @@ impl Field {
         Field {
             name: name,
             alias: alias,
-            _arguments: arguments,
+            arguments: arguments,
             subquery: subquery,
         }
     }
@@ -54,6 +58,37 @@ impl Field {
     pub fn subquery(&self) -> Option<&Query> {
         self.subquery.as_ref()
     }
+
+    pub fn require(&self, name: &FieldName) -> &Value {
+        self.get(name).expect("require argument")
+    }
+
+    pub fn get(&self, name: &FieldName) -> Option<&Value> {
+        self.arguments.iter().filter_map(|a| {
+            if a.name() == name {
+                Some(a.value())
+            } else {
+                None
+            }
+        }).nth(0)
+    }
 }
 
-pub struct Argument;
+pub struct Argument {
+    name: FieldName,
+    value: Value,
+}
+
+impl Argument {
+    pub fn new<T>(name: FieldName, value: T) -> Argument where T: Into<Value> {
+        Argument { name: name, value: value.into() }
+    }
+
+    pub fn name(&self) -> &FieldName {
+        &self.name
+    }
+
+    pub fn value(&self) -> &Value {
+        &self.value
+    }
+}

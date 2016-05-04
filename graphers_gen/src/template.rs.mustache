@@ -31,7 +31,7 @@ pub trait Resolve{{name}} {
     {{/named_types}}
 
     {{#fields}}
-    fn {{name}}(&self) -> {{{ty}}};
+    fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
     {{/fields}}
 }
 
@@ -77,7 +77,7 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
                 match field.name().as_str() {
                     {{#fields}}
                     "{{name}}" => {
-                        let target = self.target.{{name}}();
+                        let target = self.target.{{name}}({{{arguments}}});
                         {{{preserialize}}}
                         Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
                     },

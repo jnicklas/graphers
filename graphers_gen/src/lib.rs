@@ -13,6 +13,22 @@ struct Processor;
 
 static TEMPLATE: &'static str = include_str!("./template.rs.mustache");
 
+fn parameters(field: &core::Field) -> String {
+    field.arguments().iter().map(|a| {
+        format!("{}: {}", a.name(), RustType::from(a.ty().clone()))
+    }).collect::<Vec<_>>().join(", ")
+}
+
+fn arguments(field: &core::Field) -> String {
+    field.arguments().iter().map(|a| {
+        let rust_type = RustType::from(a.ty().clone());
+        match rust_type {
+            RustType::Option(_) => format!("query.get(&FieldName::new(\"{}\")).coerce::<{}>()", a.name(), rust_type),
+            _ => format!("field.require(&FieldName::new(\"{}\")).coerce::<{}>()", a.name(), rust_type),
+        }
+    }).collect::<Vec<_>>().join(", ")
+}
+
 fn preserialize(ty: &RustType) -> String {
     match ty {
         &RustType::NamedType(ref name) => {
@@ -50,6 +66,8 @@ impl build::Processor for Processor {
                                         .insert_str("name", field.name())
                                         .insert_str("ty", format!("{}", rust_type))
                                         .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                                        .insert_str("parameters", parameters(&field))
+                                        .insert_str("arguments", arguments(&field))
                                 })
                             }
                             builder

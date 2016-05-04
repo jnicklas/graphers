@@ -13,6 +13,7 @@ struct QueryRoot;
 
 #[derive(Debug)]
 struct Person {
+  id: String,
   first_name: String,
   last_name: String,
   age: i32,
@@ -20,6 +21,10 @@ struct Person {
 
 impl ResolvePerson for Person {
     type Person = Person;
+
+    fn id(&self) -> Cow<str> {
+        self.id.as_str().into()
+    }
 
     fn first_name(&self) -> Cow<str> {
         self.first_name.as_str().into()
@@ -45,8 +50,9 @@ impl ResolvePerson for Person {
 impl ResolveQueryRoot for QueryRoot {
     type Person = Person;
 
-    fn person(&self) -> Person {
+    fn person(&self, id: Cow<str>) -> Person {
         Person {
+            id: id.to_string(),
             first_name: String::from("Jonas"),
             last_name: String::from("Nicklas"),
             age: 30,
@@ -56,7 +62,8 @@ impl ResolveQueryRoot for QueryRoot {
 
 fn main() {
     let query = query::Query::new(vec![
-        query::Field::new(FieldName::new("person"), None, vec![], Some(query::Query::new(vec![
+        query::Field::new(FieldName::new("person"), None, vec![query::Argument::new(FieldName::new("id"), query::Value::String("12345".into()))], Some(query::Query::new(vec![
+            query::Field::new(FieldName::new("id"), None, vec![], None),
             query::Field::new(FieldName::new("first_name"), None, vec![], None),
             query::Field::new(FieldName::new("last_name"), None, vec![], None),
             query::Field::new(FieldName::new("tags"), None, vec![], None),

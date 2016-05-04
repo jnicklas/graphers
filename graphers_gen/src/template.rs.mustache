@@ -6,6 +6,24 @@ use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
 use self::graphers_core::*;
 
+{{#query_root}}
+////////////////////////////////////////////////////////////////////////////////
+// QUERY
+// Call this method with an argument that implements Resolve{{name}}
+////////////////////////////////////////////////////////////////////////////////
+
+pub fn query<'a, T>(root: T, query: &'a query::Query) -> QueryResult<'a, T> where T: 'a + Resolve{{name}} {
+    QueryResult({{name}}Query { target: root, query: query })
+}
+
+pub struct QueryResult<'a, T>({{name}}Query<'a, T>) where T: 'a + Resolve{{name}};
+{{/query_root}}
+
+////////////////////////////////////////////////////////////////////////////////
+// RESOLVE TRAITS
+// Implement these in your own code to resolve the fields in a query
+////////////////////////////////////////////////////////////////////////////////
+
 {{#objects}}
 pub trait Resolve{{name}} {
     {{#named_types}}
@@ -17,7 +35,23 @@ pub trait Resolve{{name}} {
     {{/fields}}
 }
 
-pub struct {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
+{{/objects}}
+
+////////////////////////////////////////////////////////////////////////////////
+// PLUMBING
+// Everything after this line is plumbing machinery, you can ignore it
+////////////////////////////////////////////////////////////////////////////////
+
+{{#query_root}}
+impl<'a, T> Serialize for QueryResult<'a, T> where T: 'a + Resolve{{name}} {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        self.0.serialize(serializer)
+    }
+}
+{{/query_root}}
+
+{{#objects}}
+struct {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
     target: T,
     query: &'a query::Query,
 }
@@ -55,10 +89,5 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
         }
     }
 }
-{{/objects}}
 
-{{#query_root}}
-pub fn query<'a, T>(root: T, query: &'a query::Query) -> {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
-    {{name}}Query { target: root, query: query }
-}
-{{/query_root}}
+{{/objects}}

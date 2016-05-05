@@ -1,4 +1,4 @@
-use super::*;
+use type_name::TypeName;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {

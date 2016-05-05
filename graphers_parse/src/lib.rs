@@ -9,7 +9,7 @@ pub use document::Document;
 pub use definition::Definition;
 
 use core::Context;
-use core::TypeDefinition;
+use core::schema::TypeDefinition;
 
 #[derive(Clone, Copy, Debug)]
 pub enum OperationType { Query, Mutation }

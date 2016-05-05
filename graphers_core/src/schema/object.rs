@@ -1,4 +1,5 @@
-use super::{Field, TypeName};
+use type_name::TypeName;
+use schema::Field;
 use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, Eq)]

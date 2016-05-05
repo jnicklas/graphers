@@ -1,5 +1,4 @@
-use core::{Object};
-use core::schema::Schema;
+use core::schema::{Schema, Object};
 use core::query::Query;
 
 #[derive(Debug)]

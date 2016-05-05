@@ -1,4 +1,4 @@
-use ty::Type;
+use schema::Type;
 use type_name::TypeName;
 use field_name::FieldName;
 use schema::Argument;

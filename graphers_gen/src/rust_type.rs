@@ -1,4 +1,5 @@
-use super::core::{Type, TypeName};
+use super::core::TypeName;
+use super::core::schema::Type;
 use std::fmt;
 
 pub enum RustType {

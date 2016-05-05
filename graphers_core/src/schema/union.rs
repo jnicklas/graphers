@@ -1,4 +1,4 @@
-use super::Type;
+use schema::ty::Type;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Union {

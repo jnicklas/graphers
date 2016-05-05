@@ -1,4 +1,5 @@
-use super::*;
+use type_name::TypeName;
+use schema::{Object, Interface, Union, Enum, InputObject};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TypeDefinition {

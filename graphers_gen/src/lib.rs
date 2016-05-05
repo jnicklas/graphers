@@ -8,18 +8,19 @@ mod rust_type;
 use std::io::Write;
 use std::path::Path;
 use rust_type::RustType;
+use core::schema;
 
 struct Processor;
 
 static TEMPLATE: &'static str = include_str!("./template.rs.mustache");
 
-fn parameters(field: &core::Field) -> String {
+fn parameters(field: &schema::Field) -> String {
     field.arguments().iter().map(|a| {
         format!("{}: {}", a.name(), RustType::from(a.ty().clone()))
     }).collect::<Vec<_>>().join(", ")
 }
 
-fn arguments(field: &core::Field) -> String {
+fn arguments(field: &schema::Field) -> String {
     field.arguments().iter().map(|a| {
         let rust_type = RustType::from(a.ty().clone());
         match rust_type {
@@ -54,7 +55,7 @@ impl build::Processor for Processor {
 
         builder = builder.insert_vec("objects", |mut builder| {
             for (name, ty) in context.types() {
-                if let &core::TypeDefinition::Object(ref object) = ty {
+                if let &schema::TypeDefinition::Object(ref object) = ty {
                     builder = builder.push_map(|builder| {
                         builder
                         .insert_str("name", name)

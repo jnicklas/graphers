@@ -1,4 +1,5 @@
-use super::{TypeName, Field};
+use type_name::TypeName;
+use schema::Field;
 
 #[derive(Debug, Eq)]
 pub struct Interface {

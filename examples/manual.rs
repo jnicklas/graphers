@@ -6,7 +6,7 @@ mod schema {
     use serde::{Serialize, Serializer};
     use serde::ser::MapVisitor;
 
-    use graphers::{query, FieldName};
+    use graphers::query;
 
     pub trait ResolvePerson {
         fn first_name(&self) -> String;

@@ -1,4 +1,4 @@
 target
 Cargo.lock
 graphers_parse/src/grammar.rs
-examples/test.rs
+fixtures/*.rs

@@ -7,6 +7,7 @@ mod schema;
 
 use schema::*;
 use std::borrow::Cow;
+use serde_json::Value;
 
 #[derive(Debug)]
 struct QueryRoot;
@@ -60,7 +61,8 @@ impl ResolveQueryRoot for QueryRoot {
     }
 }
 
-fn main() {
+#[test]
+fn test_basic_schema() {
     let doc = "
         query {
             person(id: \"12345\") {
@@ -75,5 +77,12 @@ fn main() {
 
     let result = serde_json::to_string(&schema::query(QueryRoot, query)).expect("failed to serialize");
 
-    println!("{}", result);
+    let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
+
+    let person = value.find("person").expect("should have person in output");
+
+    assert_eq!(person.find("first_name"), Some(&Value::String(String::from("Jonas"))));
+    assert_eq!(person.find("last_name"), Some(&Value::String(String::from("Nicklas"))));
+    assert_eq!(person.find("tags"), Some(&Value::Array(vec![Value::String(String::from("foo")), Value::String(String::from("bar"))])));
+    assert_eq!(person.find("age"), None);
 }

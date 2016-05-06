@@ -73,7 +73,7 @@ fn main() {
     let context = graphers::parse(doc);
     let query = context.query().expect("should define a query");
 
-    let result = serde_json::to_string(&schema::query(QueryRoot, query)).expect("failed to serialize");
+    let result = serde_json::to_string_pretty(&schema::query(QueryRoot, query)).expect("failed to serialize");
 
     println!("{}", result);
 }

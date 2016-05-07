@@ -1,10 +1,11 @@
-- graphers_core
-  - Schemas/Types/etc...
-- graphers_parse
-  - Parse queries and IDL
-- graphers_gen
-  - Generate Rust interfaces from Schema
-- graphers_query
-  - Execute queries against a schema
-- graphers_http
-  - Serves up graphql over HTTP
+# Graphers
+
+Graphers is a GraphQL implementation written in Rust.
+
+Graphers generates Rust code from the proposed GraphQL IDL. Define a Schema
+via the IDL, then implement the traits that Graphers generate to create a
+complete, compliant GraphQL interface, which you can serve over HTTP.
+
+Graphers is a work in progress, and currently not more than a proof of
+concept. It implements only a small subset of the GraphQL spec at this point.
+

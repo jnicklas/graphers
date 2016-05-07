@@ -43,8 +43,8 @@ impl ResolvePerson for Person {
         self.age
     }
 
-    fn tags(&self) -> Vec<Cow<str>> {
-        vec!["foo".into(), "bar".into()]
+    fn tags(&self) -> Cow<[Cow<str>]> {
+        vec!["foo".into(), "bar".into()].into()
     }
 }
 

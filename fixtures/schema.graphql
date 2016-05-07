@@ -4,13 +4,26 @@ schema {
 
 type QueryRoot {
     person(id: Id!): Person!
+    post(id: Id!): Post!
+    tagged(tags: [String]): Taggable
 }
 
-type Person {
+type Person: Taggable {
     id: Id!
     first_name: String!
     last_name: String!
     friend: Person
     age: Int!
+    tags: [String!]!
+}
+
+type Post: Taggable {
+    id: ID!
+    title: String!
+    tags: [String!]!
+}
+
+interface Taggable {
+    id: Id!
     tags: [String!]!
 }

@@ -13,8 +13,25 @@ pub struct Person {
   age: i32,
 }
 
-impl schema::ResolvePerson for Person {
+pub struct Schema;
+
+impl Schema {
+    pub fn query<'a>(&self, query: &'a ::graphers::Query) -> schema::QueryResult<'a, QueryRoot> {
+        schema::Schema::query(self, query)
+    }
+}
+
+impl schema::Schema for Schema {
+    type QueryRoot = QueryRoot;
     type Person = Person;
+
+    fn root(&self) -> QueryRoot {
+        QueryRoot
+    }
+}
+
+impl schema::ResolvePerson for Person {
+    type Schema = Schema;
 
     fn id(&self) -> Cow<str> {
         self.id.as_str().into()
@@ -42,7 +59,7 @@ impl schema::ResolvePerson for Person {
 }
 
 impl schema::ResolveQueryRoot for QueryRoot {
-    type Person = Person;
+    type Schema = Schema;
 
     fn person(&self, id: Cow<str>) -> Person {
         Person {
@@ -52,8 +69,4 @@ impl schema::ResolveQueryRoot for QueryRoot {
             age: 30,
         }
     }
-}
-
-pub fn query<'a>(query: &'a ::graphers::query::Query) -> schema::QueryResult<'a, QueryRoot> {
-    schema::query(QueryRoot, query)
 }

@@ -46,7 +46,7 @@ impl fmt::Display for RustType {
             &RustType::Float => "f32".fmt(f),
             &RustType::String => "Cow<str>".fmt(f),
             &RustType::Boolean => "bool".fmt(f),
-            &RustType::NamedType(ref name) => write!(f, "Self::{}", name),
+            &RustType::NamedType(ref name) => write!(f, "<Self::Schema as Schema>::{}", name),
             &RustType::List(ref ty) => write!(f, "Cow<[{}]>", ty),
             &RustType::Option(ref ty) => write!(f, "Option<{}>", ty),
         }

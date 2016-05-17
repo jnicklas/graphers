@@ -7,6 +7,8 @@ use serde_json::Value;
 #[path = "../fixtures/query.rs"]
 mod query;
 
+use query::Schema;
+
 #[test]
 fn test_basic_query() {
     let doc = "
@@ -21,7 +23,7 @@ fn test_basic_query() {
     let context = graphers::parse(doc);
     let query = context.query().expect("should define a query");
 
-    let result = serde_json::to_string(&query::query(query)).expect("failed to serialize");
+    let result = serde_json::to_string(&Schema.query(query)).expect("failed to serialize");
 
     let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
 

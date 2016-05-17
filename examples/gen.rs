@@ -5,6 +5,8 @@ extern crate serde_json;
 #[path = "../fixtures/query.rs"]
 mod query;
 
+use query::Schema;
+
 fn main() {
     let doc = "
         query {
@@ -18,7 +20,7 @@ fn main() {
     let context = graphers::parse(doc);
     let query = context.query().expect("should define a query");
 
-    let result = serde_json::to_string_pretty(&query::query(query)).expect("failed to serialize");
+    let result = serde_json::to_string_pretty(&Schema.query(query)).expect("failed to serialize");
 
     println!("{}", result);
 }

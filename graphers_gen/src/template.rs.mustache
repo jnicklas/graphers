@@ -7,15 +7,6 @@ use serde::ser::{MapVisitor};
 use self::graphers_core::*;
 
 {{#query_root}}
-////////////////////////////////////////////////////////////////////////////////
-// QUERY
-// Call this method with an argument that implements Resolve{{name}}
-////////////////////////////////////////////////////////////////////////////////
-
-pub fn query<'a, T>(root: T, query: &'a query::Query) -> QueryResult<'a, T> where T: 'a + Resolve{{name}} {
-    QueryResult({{name}}Query { target: root, query: query })
-}
-
 pub struct QueryResult<'a, T>({{name}}Query<'a, T>) where T: 'a + Resolve{{name}};
 {{/query_root}}
 
@@ -24,11 +15,23 @@ pub struct QueryResult<'a, T>({{name}}Query<'a, T>) where T: 'a + Resolve{{name}
 // Implement these in your own code to resolve the fields in a query
 ////////////////////////////////////////////////////////////////////////////////
 
+pub trait Schema {
+    {{#objects}}
+    type {{name}}: Resolve{{name}};
+    {{/objects}}
+
+    {{#query_root}}
+    fn query<'a>(&self, query: &'a query::Query) -> QueryResult<'a, Self::{{name}}> {
+        QueryResult({{name}}Query { target: self.root(), query: query })
+    }
+
+    fn root(&self) -> Self::{{name}};
+    {{/query_root}}
+}
+
 {{#objects}}
 pub trait Resolve{{name}} {
-    {{#named_types}}
-    type {{name}}: Resolve{{name}};
-    {{/named_types}}
+    type Schema: Schema;
 
     {{#fields}}
     fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};

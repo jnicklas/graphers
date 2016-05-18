@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 pub struct Object {
     name: TypeName,
     fields: Vec<Field>,
-    implements: Vec<TypeName>,
+    interfaces: Vec<TypeName>,
 }
 
 impl PartialEq for Object {
@@ -16,11 +16,11 @@ impl PartialEq for Object {
 }
 
 impl Object {
-    pub fn new(name: TypeName, fields: Vec<Field>, implements: Vec<TypeName>) -> Object {
+    pub fn new(name: TypeName, fields: Vec<Field>, interfaces: Vec<TypeName>) -> Object {
         Object {
             name: name,
             fields: fields,
-            implements: implements,
+            interfaces: interfaces,
         }
     }
 
@@ -34,5 +34,13 @@ impl Object {
 
     pub fn named_types(&self) -> BTreeSet<&TypeName> {
         self.fields.iter().filter_map(|f| f.named_type()).collect()
+    }
+
+    pub fn implements(&self, name: &TypeName) -> bool {
+        self.interfaces.contains(name)
+    }
+
+    pub fn interfaces(&self) -> &[TypeName] {
+        &self.interfaces
     }
 }

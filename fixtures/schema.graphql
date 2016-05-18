@@ -5,10 +5,10 @@ schema {
 type QueryRoot {
     person(id: Id!): Person!
     post(id: Id!): Post!
-    tagged(tags: [String]): Taggable
+    tagged(tags: [String!]): Taggable!
 }
 
-type Person: Taggable {
+type Person implements Taggable {
     id: Id!
     first_name: String!
     last_name: String!
@@ -17,8 +17,8 @@ type Person: Taggable {
     tags: [String!]!
 }
 
-type Post: Taggable {
-    id: ID!
+type Post implements Taggable {
+    id: Id!
     title: String!
     tags: [String!]!
 }

@@ -26,6 +26,7 @@ pub fn parse(input: &str) -> Context {
     for definition in document.definitions {
         match definition {
             Definition::Object(o) => types.push(TypeDefinition::Object(o)),
+            Definition::Interface(o) => types.push(TypeDefinition::Interface(o)),
             Definition::Schema(s) => schema = Some(s),
             Definition::Query(q) => query = Some(q),
         }

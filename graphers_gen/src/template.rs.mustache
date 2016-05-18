@@ -41,6 +41,22 @@ pub trait Resolve{{name}} {
 {{/objects}}
 
 ////////////////////////////////////////////////////////////////////////////////
+// INTERFACES
+// GraphQL interfaces which can be implemented by other types
+////////////////////////////////////////////////////////////////////////////////
+
+{{#interfaces}}
+pub trait {{name}} {
+    type Schema: Schema;
+
+    {{#fields}}
+    fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
+    {{/fields}}
+}
+
+{{/interfaces}}
+
+////////////////////////////////////////////////////////////////////////////////
 // PLUMBING
 // Everything after this line is plumbing machinery, you can ignore it
 ////////////////////////////////////////////////////////////////////////////////
@@ -94,3 +110,45 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
 }
 
 {{/objects}}
+
+{{#interfaces}}
+struct {{name}}Query<'a, T> where T: 'a + Schema {
+    target: Box<{{name}}<Schema=T>>,
+    query: &'a query::Query,
+}
+
+impl<'a, T> Serialize for {{name}}Query<'a, T> where T: 'a + Schema {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_map({{name}}StructVisitor {
+            target: &*self.target,
+            iter: self.query.fields().iter(),
+        })
+    }
+}
+
+struct {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Field> {
+    target: &'a {{name}}<Schema=T>,
+    iter: I,
+}
+
+impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Field> {
+    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+        match self.iter.next() {
+            Some(ref field) => {
+                match field.name().as_str() {
+                    {{#fields}}
+                    "{{name}}" => {
+                        let target = self.target.{{name}}({{{arguments}}});
+                        {{{preserialize}}}
+                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
+                    },
+                    {{/fields}}
+                    name => panic!("unknown field {}", name),
+                }
+            },
+            None => Ok(None)
+        }
+    }
+}
+
+{{/interfaces}}

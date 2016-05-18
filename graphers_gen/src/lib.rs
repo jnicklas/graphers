@@ -9,23 +9,24 @@ use std::io::Write;
 use std::path::Path;
 use rust_type::RustType;
 use core::schema;
+use core::Context;
 
 struct Processor;
 
 static TEMPLATE: &'static str = include_str!("./template.rs.mustache");
 
-fn parameters(field: &schema::Field) -> String {
+fn parameters(context: &Context, field: &schema::Field) -> String {
     field.arguments().iter().map(|a| {
-        format!("{}: {}", a.name(), RustType::from(a.ty().clone()))
+        format!("{}: {}", a.name(), RustType::from(a.ty().clone()).to_rust(context))
     }).collect::<Vec<_>>().join(", ")
 }
 
-fn arguments(field: &schema::Field) -> String {
+fn arguments(context: &Context, field: &schema::Field) -> String {
     field.arguments().iter().map(|a| {
         let rust_type = RustType::from(a.ty().clone());
         match rust_type {
-            RustType::Option(_) => format!("query.get(&FieldName::new(\"{}\")).coerce::<{}>()", a.name(), rust_type),
-            _ => format!("field.require(&FieldName::new(\"{}\")).coerce::<{}>()", a.name(), rust_type),
+            RustType::Option(_) => format!("field.get(&FieldName::new(\"{}\")).and_then(|v| v.coerce::<{}>())", a.name(), rust_type.to_rust(&context)),
+            _ => format!("field.require(&FieldName::new(\"{}\")).coerce::<{}>()", a.name(), rust_type.to_rust(&context)),
         }
     }).collect::<Vec<_>>().join(", ")
 }
@@ -54,33 +55,49 @@ impl build::Processor for Processor {
         let mut builder = mustache::MapBuilder::new();
 
         builder = builder.insert_vec("objects", |mut builder| {
-            for (name, ty) in context.types() {
-                if let &schema::TypeDefinition::Object(ref object) = ty {
-                    builder = builder.push_map(|builder| {
+            for object in context.objects() {
+                builder = builder.push_map(|builder| {
+                    builder
+                    .insert_str("name", object.name())
+                    .insert_vec("fields", |mut builder| {
+                        for field in object.fields() {
+                            builder = builder.push_map(|builder| {
+                                let rust_type = RustType::from(field.ty().clone());
+                                builder
+                                    .insert_str("name", field.name())
+                                    .insert_str("ty", rust_type.to_rust(&context))
+                                    .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                                    .insert_str("parameters", parameters(&context, &field))
+                                    .insert_str("arguments", arguments(&context, &field))
+                            })
+                        }
                         builder
-                        .insert_str("name", name)
-                        .insert_vec("fields", |mut builder| {
-                            for field in object.fields() {
-                                builder = builder.push_map(|builder| {
-                                    let rust_type = RustType::from(field.ty().clone());
-                                    builder
-                                        .insert_str("name", field.name())
-                                        .insert_str("ty", format!("{}", rust_type))
-                                        .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
-                                        .insert_str("parameters", parameters(&field))
-                                        .insert_str("arguments", arguments(&field))
-                                })
-                            }
-                            builder
-                        })
-                        .insert_vec("named_types", |mut builder| {
-                            for ty in object.named_types() {
-                                builder = builder.push_map(|builder| builder.insert_str("name", ty))
-                            }
-                            builder
-                        })
-                    });
-                }
+                    })
+                });
+            }
+            builder
+        });
+
+        builder = builder.insert_vec("interfaces", |mut builder| {
+            for interface in context.interfaces() {
+                builder = builder.push_map(|builder| {
+                    builder
+                    .insert_str("name", interface.name())
+                    .insert_vec("fields", |mut builder| {
+                        for field in interface.fields() {
+                            builder = builder.push_map(|builder| {
+                                let rust_type = RustType::from(field.ty().clone());
+                                builder
+                                    .insert_str("name", field.name())
+                                    .insert_str("ty", rust_type.to_rust(&context))
+                                    .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                                    .insert_str("parameters", parameters(&context, &field))
+                                    .insert_str("arguments", arguments(&context, &field))
+                            })
+                        }
+                        builder
+                    })
+                });
             }
             builder
         });

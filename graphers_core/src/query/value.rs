@@ -31,3 +31,11 @@ impl<'a> Coerce for Cow<'a, str> {
         }
     }
 }
+
+impl<'a, T> Coerce for Option<T> {
+    fn coerce(value: &Value) -> Self {
+        match value {
+            _ => panic!("cannot conver {:?} into option", value),
+        }
+    }
+}

@@ -13,6 +13,13 @@ pub struct Person {
   age: i32,
 }
 
+#[derive(Debug)]
+pub struct Post {
+  id: String,
+  title: String,
+  tags: Vec<String>,
+}
+
 pub struct Schema;
 
 impl Schema {
@@ -24,6 +31,7 @@ impl Schema {
 impl schema::Schema for Schema {
     type QueryRoot = QueryRoot;
     type Person = Person;
+    type Post = Post;
 
     fn root(&self) -> QueryRoot {
         QueryRoot
@@ -58,6 +66,18 @@ impl schema::ResolvePerson for Person {
     }
 }
 
+impl schema::Taggable for Person {
+    type Schema = Schema;
+
+    fn id(&self) -> Cow<str> {
+        self.id.as_str().into()
+    }
+
+    fn tags(&self) -> Cow<[Cow<str>]> {
+        schema::ResolvePerson::tags(self)
+    }
+}
+
 impl schema::ResolveQueryRoot for QueryRoot {
     type Schema = Schema;
 
@@ -68,5 +88,49 @@ impl schema::ResolveQueryRoot for QueryRoot {
             last_name: String::from("Nicklas"),
             age: 30,
         }
+    }
+
+    fn post(&self, id: Cow<str>) -> Post {
+        Post {
+            id: id.to_string(),
+            title: String::from("Hello GraphQL"),
+            tags: vec![String::from("GraphQL"), String::from("Rust")],
+        }
+    }
+
+    fn tagged(&self, tags: Option<Cow<[Cow<str>]>>) -> Box<schema::Taggable<Schema=Self::Schema>> {
+        Box::new(Post {
+            id: String::from("1234"),
+            title: String::from("Crazy Type Stuff"),
+            tags: vec![String::from("foo")],
+        })
+    }
+}
+
+impl schema::ResolvePost for Post {
+    type Schema = Schema;
+
+    fn id(&self) -> Cow<str> {
+        self.id.as_str().into()
+    }
+
+    fn title(&self) -> Cow<str> {
+        self.title.as_str().into()
+    }
+
+    fn tags(&self) -> Cow<[Cow<str>]> {
+        self.tags.iter().map(|v| v.as_str().into()).collect::<Vec<_>>().into()
+    }
+}
+
+impl schema::Taggable for Post {
+    type Schema = Schema;
+
+    fn id(&self) -> Cow<str> {
+        self.id.as_str().into()
+    }
+
+    fn tags(&self) -> Cow<[Cow<str>]> {
+        schema::ResolvePost::tags(self)
     }
 }

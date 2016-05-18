@@ -24,6 +24,18 @@ impl Context {
         &self.types
     }
 
+    pub fn objects(&self) -> Vec<&Object> {
+        self.types.iter().filter_map(|(_name, ty)| ty.object()).collect()
+    }
+
+    pub fn interfaces(&self) -> Vec<&Interface> {
+        self.types.iter().filter_map(|(_name, ty)| ty.interface()).collect()
+    }
+
+    pub fn interfaces_of(&self, object: &Object) -> Vec<&Interface> {
+        object.interfaces().iter().filter_map(|i| self.resolve(i).and_then(|i| i.interface())).collect()
+    }
+
     pub fn schema(&self) -> Option<&Schema> {
         self.schema.as_ref()
     }
@@ -36,12 +48,11 @@ impl Context {
         self.types.get(name)
     }
 
+    pub fn implementors(&self, name: &TypeName) -> Vec<&Object> {
+        self.types.iter().filter_map(|(_name, ty)| ty.object()).filter(|o| o.implements(name)).collect()
+    }
+
     pub fn resolve_object(&self, name: &TypeName) -> Option<&Object> {
-        self.types.get(name).and_then(|ty| {
-            match ty {
-                &TypeDefinition::Object(ref object) => Some(object),
-                _ => None
-            }
-        })
+        self.types.get(name).and_then(|ty| ty.object())
     }
 }

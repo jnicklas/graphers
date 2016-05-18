@@ -15,7 +15,24 @@ impl TypeDefinition {
     pub fn name(&self) -> &TypeName {
         match self {
             &TypeDefinition::Object(ref object) => object.name(),
+            &TypeDefinition::Interface(ref interface) => interface.name(),
             _ => panic!("type name not implemented!")
+        }
+    }
+
+    pub fn object(&self) -> Option<&Object> {
+        if let &TypeDefinition::Object(ref object) = self {
+            Some(object)
+        } else {
+            None
+        }
+    }
+
+    pub fn interface(&self) -> Option<&Interface> {
+        if let &TypeDefinition::Interface(ref interface) = self {
+            Some(interface)
+        } else {
+            None
         }
     }
 }

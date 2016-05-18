@@ -59,7 +59,7 @@ fn test_query_with_fragments() {
     let context = graphers::parse(doc);
     let query = context.query().expect("should define a query");
 
-    let result = serde_json::to_string(&query::query(query)).expect("failed to serialize");
+    let result = serde_json::to_string(&Schema.query(query)).expect("failed to serialize");
 
     let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
 

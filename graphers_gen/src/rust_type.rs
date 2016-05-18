@@ -1,6 +1,5 @@
-use super::core::TypeName;
-use super::core::schema::Type;
-use std::fmt;
+use super::core::{TypeName, Context};
+use super::core::schema::{Type, TypeDefinition};
 
 pub enum RustType {
     Int,
@@ -39,16 +38,22 @@ impl From<Type> for RustType {
     }
 }
 
-impl fmt::Display for RustType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl RustType {
+    pub fn to_rust(&self, context: &Context) -> String {
         match self {
-            &RustType::Int => "i32".fmt(f),
-            &RustType::Float => "f32".fmt(f),
-            &RustType::String => "Cow<str>".fmt(f),
-            &RustType::Boolean => "bool".fmt(f),
-            &RustType::NamedType(ref name) => write!(f, "<Self::Schema as Schema>::{}", name),
-            &RustType::List(ref ty) => write!(f, "Cow<[{}]>", ty),
-            &RustType::Option(ref ty) => write!(f, "Option<{}>", ty),
+            &RustType::Int => "i32".into(),
+            &RustType::Float => "f32".into(),
+            &RustType::String => "Cow<str>".into(),
+            &RustType::Boolean => "bool".into(),
+            &RustType::List(ref ty) => format!("Cow<[{}]>", ty.to_rust(context)),
+            &RustType::Option(ref ty) => format!("Option<{}>", ty.to_rust(context)),
+            &RustType::NamedType(ref name) => {
+                match context.resolve(name) {
+                    Some(&TypeDefinition::Object(ref object)) => format!("<Self::Schema as Schema>::{}", object.name()),
+                    Some(&TypeDefinition::Interface(ref interface)) => format!("Box<{}<Schema=Self::Schema>>", interface.name()),
+                    other => panic!("unknown type {:?}", other),
+                }
+            }
         }
     }
 }

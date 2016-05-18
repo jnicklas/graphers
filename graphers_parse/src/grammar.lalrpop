@@ -26,8 +26,20 @@ OperationDefinition: Definition = {
     }
 };
 
-SelectionSet: Vec<query::Field> = {
+SelectionSet: Vec<query::Selection> = {
     "{" <fields:(Field)*> "}" => { fields }
+};
+
+Selection: query::Selection = {
+    <field:Field> => query::Selection::Field(field),
+    <fragment_spread:FragmentSpread> => query::Selection::FragmentSpread(fragment_spread),
+    <inline_fragment:InlineFragment> => query::Selection::InlineFragment(inline_fragment),
+};
+
+FragmentSpread: TypeName = { "..." <TypeName> };
+
+InlineFragment: InlineFragment = {
+    "..." "on" <TypeName> SelectionSet =>
 };
 
 Field: query::Field = {
@@ -49,14 +61,18 @@ Alias: FieldName = {
 };
 
 Value: query::Value = {
-    <value:"String"> => query::Value::String(value.into())
+    <value:"String"> => query::Value::String(value.into()),
     // ConstVariable
     // IntValue
     // FloatValue
     // BooleanValue
     // EnumValue
-    // ListValueConst
+    <list:ListValueConst> => query::Value::List(list),
     // ObjectValueConst
+};
+
+ListValueConst: Vec<query::Value> = {
+    "[" <(Value)+> "]"
 };
 
 TypeSystemDefinition: Definition = {
@@ -122,18 +138,19 @@ Identifier: &'input str = {
     "query" => { "query" },
     "mutation" => { "mutation" },
     "type" => { "type" },
+    "interface" => { "interface" },
     "implements" => { "implements" },
     "on" => { "on" },
     <value:"identifier"> => { value },
 };
 
 TypeDefinition: Definition = {
-//     ScalarTypeDefinition
-    ObjectTypeDefinition
-//     InterfaceTypeDefinition
-//     UnionTypeDefinition
-//     EnumTypeDefinition
-//     InputObjectTypeDefinition
+//     ScalarTypeDefinition,
+    ObjectTypeDefinition,
+    InterfaceTypeDefinition,
+//     UnionTypeDefinition,
+//     EnumTypeDefinition,
+//     InputObjectTypeDefinition,
 };
 
 ObjectTypeDefinition: Definition = {
@@ -144,6 +161,12 @@ ObjectTypeDefinition: Definition = {
 
 ImplementsInterfaces: Vec<TypeName> = {
     "implements" <types:(TypeName)+> => { types }
+};
+
+InterfaceTypeDefinition: Definition = {
+    "interface" <name:TypeName> "{" <fields:(FieldDefinition)+> "}" => {
+        Definition::Interface(Interface::new(name, fields))
+    }
 };
 
 FieldDefinition: Field = {
@@ -168,6 +191,7 @@ extern {
         "query" => Tok::Query,
         "mutation" => Tok::Mutation,
         "type" => Tok::Type,
+        "interface" => Tok::Interface,
         "on" => Tok::On,
         "implements" => Tok::Implements,
         "identifier" => Tok::Identifier(<&'input str>),
@@ -178,6 +202,7 @@ extern {
         "(" => Tok::LParen,
         ")" => Tok::RParen,
         ":" => Tok::Colon,
+        "..." => Tok::Ellipsis,
         "=" => Tok::Equals,
         "@" => Tok::At,
         "[" => Tok::LBracket,

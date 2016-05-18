@@ -41,6 +41,7 @@ pub enum Tok<'input> {
     Query,
     Mutation,
     Type,
+    Interface,
     Implements,
     On,
 
@@ -56,6 +57,7 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("query", Query),
     ("mutation", Mutation),
     ("type", Type),
+    ("interface", Interface),
     ("implements", Implements),
     ("on", On),
     ];

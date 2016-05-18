@@ -14,7 +14,18 @@ impl PartialEq for Interface {
 }
 
 impl Interface {
+    pub fn new(name: TypeName, fields: Vec<Field>) -> Interface {
+        Interface {
+            name: name,
+            fields: fields,
+        }
+    }
+
     pub fn name(&self) -> &TypeName {
         &self.name
+    }
+
+    pub fn fields(&self) -> &[Field] {
+        &self.fields
     }
 }

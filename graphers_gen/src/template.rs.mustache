@@ -156,7 +156,7 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Sche
                 panic!("not implemented!");
             },
             Some(&query::Selection::InlineFragment(_)) => {
-                panic!("not implemented!");
+                Ok(Some(()))
             },
             None => Ok(None)
         }

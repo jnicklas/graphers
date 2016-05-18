@@ -45,7 +45,7 @@ impl RustType {
             &RustType::Float => "f32".into(),
             &RustType::String => "Cow<str>".into(),
             &RustType::Boolean => "bool".into(),
-            &RustType::List(ref ty) => format!("Cow<[{}]>", ty.to_rust(context)),
+            &RustType::List(ref ty) => format!("Vec<{}>", ty.to_rust(context)),
             &RustType::Option(ref ty) => format!("Option<{}>", ty.to_rust(context)),
             &RustType::NamedType(ref name) => {
                 match context.resolve(name) {

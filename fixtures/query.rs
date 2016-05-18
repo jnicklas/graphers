@@ -61,8 +61,8 @@ impl schema::ResolvePerson for Person {
         self.age
     }
 
-    fn tags(&self) -> Cow<[Cow<str>]> {
-        vec!["foo".into(), "bar".into()].into()
+    fn tags(&self) -> Vec<Cow<str>> {
+        vec!["foo".into(), "bar".into()]
     }
 }
 
@@ -73,7 +73,7 @@ impl schema::Taggable for Person {
         schema::ResolvePerson::id(self)
     }
 
-    fn tags(&self) -> Cow<[Cow<str>]> {
+    fn tags(&self) -> Vec<Cow<str>> {
         schema::ResolvePerson::tags(self)
     }
 }
@@ -98,12 +98,11 @@ impl schema::ResolveQueryRoot for QueryRoot {
         }
     }
 
-    fn tagged(&self, _tags: Option<Cow<[Cow<str>]>>) -> Box<schema::Taggable<Schema=Self::Schema>> {
-        Box::new(Post {
-            id: String::from("1234"),
-            title: String::from("Crazy Type Stuff"),
-            tags: vec![String::from("foo")],
-        })
+    fn tagged(&self, _tags: Option<Vec<Cow<str>>>) -> Vec<Box<schema::Taggable<Schema=Self::Schema>>> {
+        vec![
+            Box::new(self.person("6543".into())),
+            Box::new(self.post("9876".into())),
+        ]
     }
 }
 
@@ -118,7 +117,7 @@ impl schema::ResolvePost for Post {
         self.title.as_str().into()
     }
 
-    fn tags(&self) -> Cow<[Cow<str>]> {
+    fn tags(&self) -> Vec<Cow<str>> {
         self.tags.iter().map(|v| v.as_str().into()).collect::<Vec<_>>().into()
     }
 }
@@ -130,7 +129,7 @@ impl schema::Taggable for Post {
         schema::ResolvePost::id(self)
     }
 
-    fn tags(&self) -> Cow<[Cow<str>]> {
+    fn tags(&self) -> Vec<Cow<str>> {
         schema::ResolvePost::tags(self)
     }
 }

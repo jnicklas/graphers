@@ -70,7 +70,7 @@ impl schema::Taggable for Person {
     type Schema = Schema;
 
     fn id(&self) -> Cow<str> {
-        self.id.as_str().into()
+        schema::ResolvePerson::id(self)
     }
 
     fn tags(&self) -> Cow<[Cow<str>]> {
@@ -98,7 +98,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
         }
     }
 
-    fn tagged(&self, tags: Option<Cow<[Cow<str>]>>) -> Box<schema::Taggable<Schema=Self::Schema>> {
+    fn tagged(&self, _tags: Option<Cow<[Cow<str>]>>) -> Box<schema::Taggable<Schema=Self::Schema>> {
         Box::new(Post {
             id: String::from("1234"),
             title: String::from("Crazy Type Stuff"),
@@ -127,7 +127,7 @@ impl schema::Taggable for Post {
     type Schema = Schema;
 
     fn id(&self) -> Cow<str> {
-        self.id.as_str().into()
+        schema::ResolvePost::id(self)
     }
 
     fn tags(&self) -> Cow<[Cow<str>]> {

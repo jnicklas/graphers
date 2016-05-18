@@ -1,26 +1,26 @@
-use field_name::FieldName;
-use query::field::Field;
+// use field_name::FieldName;
+use query::Selection;
 
 #[derive(Debug)]
 pub struct Query {
-    fields: Vec<Field>
+    selection_set: Vec<Selection>
 }
 
 impl Query {
-    pub fn new(fields: Vec<Field>) -> Query {
-        Query { fields: fields }
+    pub fn new(selection_set: Vec<Selection>) -> Query {
+        Query { selection_set: selection_set }
     }
 
-    pub fn fields(&self) -> &[Field] {
-        &self.fields
+    pub fn selection_set(&self) -> &[Selection] {
+        &self.selection_set
     }
 
-    pub fn get<'a>(&self, name: &'a FieldName) -> Option<&Field> {
-        for field in &self.fields {
-            if field.name() == name {
-                return Some(&field)
-            }
-        };
-        None
-    }
+    // pub fn get<'a>(&self, name: &'a FieldName) -> Option<&Selection> {
+    //     for field in &self.selection_set {
+    //         if field.name() == name {
+    //             return Some(&field)
+    //         }
+    //     };
+    //     None
+    // }
 }

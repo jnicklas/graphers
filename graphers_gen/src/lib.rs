@@ -34,7 +34,7 @@ fn arguments(context: &Context, field: &schema::Field) -> String {
 fn preserialize(ty: &RustType) -> String {
     match ty {
         &RustType::NamedType(ref name) => {
-            format!("{}Query {{ target: target, query: field.subquery().expect(\"must have subquery for object types\") }}", name)
+            format!("{}Selection {{ target: target, selection_set: field.selection_set() }}", name)
         },
         &RustType::List(ref ty) => {
             format!("target.into_iter().map(|target| {{ {} }}).collect::<Vec<_>>()", preserialize(ty))

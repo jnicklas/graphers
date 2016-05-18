@@ -7,7 +7,7 @@ use serde::ser::{MapVisitor};
 use self::graphers_core::*;
 
 {{#query_root}}
-pub struct QueryResult<'a, T>({{name}}Query<'a, T>) where T: 'a + Resolve{{name}};
+pub struct QueryResult<'a, T>({{name}}Selection<'a, T>) where T: 'a + Resolve{{name}};
 {{/query_root}}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ pub trait Schema {
 
     {{#query_root}}
     fn query<'a>(&self, query: &'a query::Query) -> QueryResult<'a, Self::{{name}}> {
-        QueryResult({{name}}Query { target: self.root(), query: query })
+        QueryResult({{name}}Selection { target: self.root(), selection_set: query.selection_set() })
     }
 
     fn root(&self) -> Self::{{name}};
@@ -70,29 +70,29 @@ impl<'a, T> Serialize for QueryResult<'a, T> where T: 'a + Resolve{{name}} {
 {{/query_root}}
 
 {{#objects}}
-struct {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
+struct {{name}}Selection<'a, T> where T: 'a + Resolve{{name}} {
     target: T,
-    query: &'a query::Query,
+    selection_set: &'a [query::Selection],
 }
 
-impl<'a, T> Serialize for {{name}}Query<'a, T> where T: 'a + Resolve{{name}} {
+impl<'a, T> Serialize for {{name}}Selection<'a, T> where T: 'a + Resolve{{name}} {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         serializer.serialize_map({{name}}StructVisitor {
             target: &self.target,
-            iter: self.query.fields().iter(),
+            iter: self.selection_set.iter(),
         })
     }
 }
 
-struct {{name}}StructVisitor<'a, T, I> where T: 'a + Resolve{{name}}, I: Iterator<Item=&'a query::Field> {
+struct {{name}}StructVisitor<'a, T, I> where T: 'a + Resolve{{name}}, I: Iterator<Item=&'a query::Selection> {
     target: &'a T,
     iter: I,
 }
 
-impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Resolve{{name}}, I: Iterator<Item=&'a query::Field> {
+impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Resolve{{name}}, I: Iterator<Item=&'a query::Selection> {
     fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
         match self.iter.next() {
-            Some(ref field) => {
+            Some(&query::Selection::Field(ref field)) => {
                 match field.name().as_str() {
                     {{#fields}}
                     "{{name}}" => {
@@ -104,6 +104,12 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
                     name => panic!("unknown field {}", name),
                 }
             },
+            Some(&query::Selection::FragmentSpread(_)) => {
+                panic!("not implemented!");
+            },
+            Some(&query::Selection::InlineFragment(_)) => {
+                panic!("not implemented!");
+            },
             None => Ok(None)
         }
     }
@@ -112,29 +118,29 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
 {{/objects}}
 
 {{#interfaces}}
-struct {{name}}Query<'a, T> where T: 'a + Schema {
+struct {{name}}Selection<'a, T> where T: 'a + Schema {
     target: Box<{{name}}<Schema=T>>,
-    query: &'a query::Query,
+    selection_set: &'a [query::Selection],
 }
 
-impl<'a, T> Serialize for {{name}}Query<'a, T> where T: 'a + Schema {
+impl<'a, T> Serialize for {{name}}Selection<'a, T> where T: 'a + Schema {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         serializer.serialize_map({{name}}StructVisitor {
             target: &*self.target,
-            iter: self.query.fields().iter(),
+            iter: self.selection_set.iter(),
         })
     }
 }
 
-struct {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Field> {
+struct {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Selection> {
     target: &'a {{name}}<Schema=T>,
     iter: I,
 }
 
-impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Field> {
+impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Selection> {
     fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
         match self.iter.next() {
-            Some(ref field) => {
+            Some(&query::Selection::Field(ref field)) => {
                 match field.name().as_str() {
                     {{#fields}}
                     "{{name}}" => {
@@ -145,6 +151,12 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Sche
                     {{/fields}}
                     name => panic!("unknown field {}", name),
                 }
+            },
+            Some(&query::Selection::FragmentSpread(_)) => {
+                panic!("not implemented!");
+            },
+            Some(&query::Selection::InlineFragment(_)) => {
+                panic!("not implemented!");
             },
             None => Ok(None)
         }

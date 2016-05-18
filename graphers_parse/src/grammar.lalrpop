@@ -26,9 +26,7 @@ OperationDefinition: Definition = {
     }
 };
 
-SelectionSet: Vec<query::Selection> = {
-    "{" <fields:(Field)*> "}" => { fields }
-};
+SelectionSet: Vec<query::Selection> = { "{" <(Selection)*> "}" };
 
 Selection: query::Selection = {
     <field:Field> => query::Selection::Field(field),
@@ -36,15 +34,15 @@ Selection: query::Selection = {
     <inline_fragment:InlineFragment> => query::Selection::InlineFragment(inline_fragment),
 };
 
-FragmentSpread: TypeName = { "..." <TypeName> };
+FragmentSpread: TypeName = { "..." <name:FragmentName> => TypeName::new(name) };
 
-InlineFragment: InlineFragment = {
-    "..." "on" <TypeName> SelectionSet =>
+InlineFragment: query::InlineFragment = {
+    "..." "on" <name:TypeName> <selection_set:SelectionSet> => query::InlineFragment::new(name, selection_set),
 };
 
 Field: query::Field = {
-    <alias:(Alias)?> <name:FieldName> <arguments:(Arguments)?> <fields:(SelectionSet)?> => {
-        query::Field::new(name, alias, arguments.unwrap_or(Vec::new()), fields.map(|f| query::Query::new(f)))
+    <alias:(Alias)?> <name:FieldName> <arguments:(Arguments)?> <selection_set:(SelectionSet)?> => {
+        query::Field::new(name, alias, arguments.unwrap_or(Vec::new()), selection_set.unwrap_or(Vec::new()))
     }
 };
 
@@ -126,22 +124,26 @@ Type: Type = {
 };
 
 TypeName: TypeName = {
-    <name:Identifier> => { TypeName(name.to_string()) }
+    <name:Name> => { TypeName(name.to_string()) }
 };
 
 FieldName: FieldName = {
-    <name:Identifier> => { FieldName(name.to_string()) }
+    <name:Name> => { FieldName(name.to_string()) }
 };
 
-Identifier: &'input str = {
+FragmentName: &'input str = {
     "schema" => { "schema" },
     "query" => { "query" },
     "mutation" => { "mutation" },
     "type" => { "type" },
     "interface" => { "interface" },
     "implements" => { "implements" },
-    "on" => { "on" },
     <value:"identifier"> => { value },
+};
+
+Name: &'input str = {
+    "on" => { "on" },
+    <FragmentName>,
 };
 
 TypeDefinition: Definition = {

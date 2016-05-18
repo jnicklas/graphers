@@ -13,29 +13,29 @@ mod schema {
         fn last_name(&self) -> String;
     }
 
-    pub struct PersonQuery<'a, T> where T: 'a + ResolvePerson {
+    pub struct PersonSelection<'a, T> where T: 'a + ResolvePerson {
         target: &'a T,
-        query: &'a query::Query,
+        selection: &'a [query::Selection]
     }
 
-    impl<'a, T> Serialize for PersonQuery<'a, T> where T: 'a + ResolvePerson {
+    impl<'a, T> Serialize for PersonSelection<'a, T> where T: 'a + ResolvePerson {
         fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
             serializer.serialize_map(PersonStructVisitor {
                 target: self.target,
-                iter: self.query.fields().iter(),
+                iter: self.selection.iter(),
             })
         }
     }
 
-    struct PersonStructVisitor<'a, T, I> where T: 'a + ResolvePerson, I: Iterator<Item=&'a query::Field> {
+    struct PersonStructVisitor<'a, T, I> where T: 'a + ResolvePerson, I: Iterator<Item=&'a query::Selection> {
         target: &'a T,
         iter: I,
     }
 
-    impl<'a, T, I> MapVisitor for PersonStructVisitor<'a, T, I> where T: 'a + ResolvePerson, I: Iterator<Item=&'a query::Field> {
+    impl<'a, T, I> MapVisitor for PersonStructVisitor<'a, T, I> where T: 'a + ResolvePerson, I: Iterator<Item=&'a query::Selection> {
         fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
             match self.iter.next() {
-                Some(ref field) => {
+                Some(&query::Selection::Field(ref field)) => {
                     match field.name().as_str() {
                         "first_name" => {
                             let value = self.target.first_name();
@@ -50,7 +50,8 @@ mod schema {
                         }
                     }
                 },
-                None => Ok(None)
+                None => Ok(None),
+                _ => unreachable!()
             }
         }
     }
@@ -61,47 +62,48 @@ mod schema {
         fn person(&self) -> Option<Self::Person>;
     }
 
-    pub struct RootQuery<'a, T> where T: 'a + ResolveRoot {
+    pub struct RootSelection<'a, T> where T: 'a + ResolveRoot {
         target: &'a T,
-        query: &'a query::Query,
+        selection: &'a [query::Selection],
     }
 
-    impl<'a, T> Serialize for RootQuery<'a, T> where T: 'a + ResolveRoot {
+    impl<'a, T> Serialize for RootSelection<'a, T> where T: 'a + ResolveRoot {
         fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
             serializer.serialize_map(RootStructVisitor {
                 target: self.target,
-                iter: self.query.fields().iter(),
+                iter: self.selection.iter(),
             })
         }
     }
 
-    struct RootStructVisitor<'a, T, I> where T: 'a + ResolveRoot, I: Iterator<Item=&'a query::Field> {
+    struct RootStructVisitor<'a, T, I> where T: 'a + ResolveRoot, I: Iterator<Item=&'a query::Selection> {
         target: &'a T,
         iter: I,
     }
 
-    impl<'a, T, I> MapVisitor for RootStructVisitor<'a, T, I> where T: 'a + ResolveRoot, I: Iterator<Item=&'a query::Field> {
+    impl<'a, T, I> MapVisitor for RootStructVisitor<'a, T, I> where T: 'a + ResolveRoot, I: Iterator<Item=&'a query::Selection> {
         fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
             match self.iter.next() {
-                Some(ref field) => {
+                Some(&query::Selection::Field(ref field)) => {
                     match field.name().as_str() {
                         "person" => {
                             let target = self.target.person().expect("must have person");
-                            let query_struct = PersonQuery { target: &target, query: &field.subquery().expect("ugh? no subquery") };
-                            Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), &query_struct))))
+                            let selection = PersonSelection { target: &target, selection: &field.selection_set() };
+                            Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), &selection))))
                         },
                         name => {
                             panic!("unknown field {}", name)
                         }
                     }
                 },
-                None => Ok(None)
+                None => Ok(None),
+                _ => unreachable!()
             }
         }
     }
 
-    pub fn query<'a, T>(root: &'a T, query: &'a query::Query) -> RootQuery<'a, T> where T: 'a + ResolveRoot {
-        RootQuery { target: root, query: query, }
+    pub fn query<'a, T>(root: &'a T, query: &'a query::Query) -> RootSelection<'a, T> where T: 'a + ResolveRoot {
+        RootSelection { target: root, selection: query.selection_set(), }
     }
 }
 
@@ -140,10 +142,10 @@ impl ResolveRoot for Root {
 
 fn main() {
     let query = query::Query::new(vec![
-        query::Field::new(FieldName::new("person"), None, vec![], Some(query::Query::new(vec![
-            query::Field::new(FieldName::new("first_name"), None, vec![], None),
-            query::Field::new(FieldName::new("last_name"), None, vec![], None),
-        ]))),
+        query::Selection::Field(query::Field::new(FieldName::new("person"), None, vec![], vec![
+            query::Selection::Field(query::Field::new(FieldName::new("first_name"), None, vec![], vec![])),
+            query::Selection::Field(query::Field::new(FieldName::new("last_name"), None, vec![], vec![])),
+        ])),
     ]);
 
     let result = serde_json::to_string(&schema::query(&Root, &query)).expect("failed to serialize");

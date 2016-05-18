@@ -36,7 +36,7 @@ fn test_basic_query() {
 }
 
 #[test]
-fn test_query_with_fragments() {
+fn test_query_with_inline_fragment() {
     let doc = "
         query {
             tagged(id: [\"foo\"]) {
@@ -47,13 +47,10 @@ fn test_query_with_fragments() {
                     title
                 }
 
-                ... Name
+                ... on Person {
+                    first_name
+                }
             }
-        }
-
-        fragment Name on Person {
-            first_name,
-            last_name,
         }
     ";
     let context = graphers::parse(doc);

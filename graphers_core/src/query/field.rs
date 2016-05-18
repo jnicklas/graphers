@@ -1,23 +1,21 @@
 use field_name::FieldName;
-use query::argument::Argument;
-use query::query::Query;
-use query::value::Value;
+use query::{Selection, Argument, Value};
 
 #[derive(Debug)]
 pub struct Field {
     name: FieldName,
     alias: Option<FieldName>,
     arguments: Vec<Argument>,
-    subquery: Option<Query>,
+    selection_set: Vec<Selection>,
 }
 
 impl Field {
-    pub fn new(name: FieldName, alias: Option<FieldName>, arguments: Vec<Argument>, subquery: Option<Query>) -> Field {
+    pub fn new(name: FieldName, alias: Option<FieldName>, arguments: Vec<Argument>, selection_set: Vec<Selection>) -> Field {
         Field {
             name: name,
             alias: alias,
             arguments: arguments,
-            subquery: subquery,
+            selection_set: selection_set,
         }
     }
 
@@ -32,8 +30,8 @@ impl Field {
         }
     }
 
-    pub fn subquery(&self) -> Option<&Query> {
-        self.subquery.as_ref()
+    pub fn selection_set(&self) -> &[Selection] {
+        &self.selection_set
     }
 
     pub fn arguments(&self) -> &[Argument] {

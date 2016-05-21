@@ -36,6 +36,10 @@ impl Context {
         object.interfaces().iter().filter_map(|i| self.resolve(i).and_then(|i| i.interface())).collect()
     }
 
+    pub fn implementors_of(&self, interface: &Interface) -> Vec<&Object> {
+        self.objects().into_iter().filter(|o| o.implements(interface.name())).collect()
+    }
+
     pub fn schema(&self) -> Option<&Schema> {
         self.schema.as_ref()
     }

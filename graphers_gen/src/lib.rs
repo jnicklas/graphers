@@ -46,6 +46,67 @@ fn preserialize(ty: &RustType) -> String {
     }
 }
 
+impl Processor {
+    fn object(&self, context: &Context, object: &schema::Object, mut builder: mustache::MapBuilder) -> mustache::MapBuilder {
+        builder = builder
+        .insert_str("name", object.name())
+        .insert_str("object_name", object.name())
+        .insert_vec("fields", |mut builder| {
+            for field in object.fields() {
+                builder = builder.push_map(|builder| {
+                    let rust_type = RustType::from(field.ty().clone());
+                    builder
+                        .insert_str("name", field.name())
+                        .insert_str("ty", rust_type.to_rust(&context))
+                        .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                        .insert_str("parameters", parameters(&context, &field))
+                        .insert_str("arguments", arguments(&context, &field))
+                })
+            }
+            builder
+        });
+        if object.interfaces().len() > 0 {
+            let names = object.interfaces().iter().map(|n| n.as_str()).collect::<Vec<_>>().join(", ");
+            builder = builder.insert_str("implemented_interfaces", names);
+        }
+
+        builder
+    }
+
+    fn objects(&self, context: &Context, objects: &[&schema::Object], mut builder: mustache::VecBuilder) -> mustache::VecBuilder {
+        for object in objects {
+            builder = builder.push_map(|builder| { self.object(context, &object, builder) })
+        }
+        builder
+    }
+
+
+    fn interfaces(&self, context: &Context, mut builder: mustache::VecBuilder) -> mustache::VecBuilder {
+        for interface in context.interfaces() {
+            builder = builder.push_map(|builder| {
+                builder
+                .insert_str("name", interface.name())
+                .insert_vec("implementors", |builder| { self.objects(context, &context.implementors_of(interface), builder) })
+                .insert_vec("fields", |mut builder| {
+                    for field in interface.fields() {
+                        builder = builder.push_map(|builder| {
+                            let rust_type = RustType::from(field.ty().clone());
+                            builder
+                                .insert_str("name", field.name())
+                                .insert_str("ty", rust_type.to_rust(&context))
+                                .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                                .insert_str("parameters", parameters(&context, &field))
+                                .insert_str("arguments", arguments(&context, &field))
+                        })
+                    }
+                    builder
+                })
+            });
+        }
+        builder
+    }
+}
+
 impl build::Processor for Processor {
     fn process<O: Write>(&self, input: build::FileText, output: &mut O) -> Result<(), build::Error> {
         let context = parse::parse(input.text());
@@ -54,53 +115,8 @@ impl build::Processor for Processor {
 
         let mut builder = mustache::MapBuilder::new();
 
-        builder = builder.insert_vec("objects", |mut builder| {
-            for object in context.objects() {
-                builder = builder.push_map(|builder| {
-                    builder
-                    .insert_str("name", object.name())
-                    .insert_vec("fields", |mut builder| {
-                        for field in object.fields() {
-                            builder = builder.push_map(|builder| {
-                                let rust_type = RustType::from(field.ty().clone());
-                                builder
-                                    .insert_str("name", field.name())
-                                    .insert_str("ty", rust_type.to_rust(&context))
-                                    .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
-                                    .insert_str("parameters", parameters(&context, &field))
-                                    .insert_str("arguments", arguments(&context, &field))
-                            })
-                        }
-                        builder
-                    })
-                });
-            }
-            builder
-        });
-
-        builder = builder.insert_vec("interfaces", |mut builder| {
-            for interface in context.interfaces() {
-                builder = builder.push_map(|builder| {
-                    builder
-                    .insert_str("name", interface.name())
-                    .insert_vec("fields", |mut builder| {
-                        for field in interface.fields() {
-                            builder = builder.push_map(|builder| {
-                                let rust_type = RustType::from(field.ty().clone());
-                                builder
-                                    .insert_str("name", field.name())
-                                    .insert_str("ty", rust_type.to_rust(&context))
-                                    .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
-                                    .insert_str("parameters", parameters(&context, &field))
-                                    .insert_str("arguments", arguments(&context, &field))
-                            })
-                        }
-                        builder
-                    })
-                });
-            }
-            builder
-        });
+        builder = builder.insert_vec("objects", |builder| { self.objects(&context, &context.objects(), builder) });
+        builder = builder.insert_vec("interfaces", |builder| { self.interfaces(&context, builder) });
 
         if let Some(query) = context.schema().and_then(|s| s.query()) {
             builder = builder.insert_vec("query_root", |builder| {

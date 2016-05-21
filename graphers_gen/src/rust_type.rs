@@ -49,8 +49,8 @@ impl RustType {
             &RustType::Option(ref ty) => format!("Option<{}>", ty.to_rust(context)),
             &RustType::NamedType(ref name) => {
                 match context.resolve(name) {
-                    Some(&TypeDefinition::Object(ref object)) => format!("<Self::Schema as Schema>::{}", object.name()),
-                    Some(&TypeDefinition::Interface(ref interface)) => format!("Box<{}<Schema=Self::Schema>>", interface.name()),
+                    Some(&TypeDefinition::Object(ref object)) => format!("<<Self as HasSchema>::Schema as Schema>::{}", object.name()),
+                    Some(&TypeDefinition::Interface(ref interface)) => format!("Box<{}<Schema=<Self as HasSchema>::Schema>>", interface.name()),
                     other => panic!("unknown type {:?}", other),
                 }
             }

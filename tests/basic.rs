@@ -66,4 +66,6 @@ fn test_query_with_inline_fragment() {
     assert_eq!(tagged[1].find("id"), Some(&Value::String(String::from("9876"))));
     assert_eq!(tagged[0].find("tags"), Some(&Value::Array(vec![Value::String(String::from("foo")), Value::String(String::from("bar"))])));
     assert_eq!(tagged[1].find("tags"), Some(&Value::Array(vec![Value::String(String::from("GraphQL")), Value::String(String::from("Rust"))])));
+    assert_eq!(tagged[0].find("first_name"), Some(&Value::String(String::from("Jonas"))));
+    assert_eq!(tagged[1].find("title"), Some(&Value::String(String::from("Hello GraphQL"))));
 }

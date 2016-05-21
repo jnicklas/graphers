@@ -1,7 +1,10 @@
 extern crate graphers_core;
 extern crate serde;
 
+use std::any::Any as StdAny;
+use std::any::TypeId;
 use std::borrow::Cow;
+use std::mem::transmute;
 use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
 use self::graphers_core::*;
@@ -15,7 +18,7 @@ pub struct QueryResult<'a, T>({{name}}Selection<'a, T>) where T: 'a + Resolve{{n
 // Implement these in your own code to resolve the fields in a query
 ////////////////////////////////////////////////////////////////////////////////
 
-pub trait Schema {
+pub trait Schema: 'static {
     {{#objects}}
     type {{name}}: Resolve{{name}};
     {{/objects}}
@@ -29,10 +32,12 @@ pub trait Schema {
     {{/query_root}}
 }
 
-{{#objects}}
-pub trait Resolve{{name}} {
+pub trait HasSchema {
     type Schema: Schema;
+}
 
+{{#objects}}
+pub trait Resolve{{name}}: HasSchema + {{{implemented_interfaces}}} {
     {{#fields}}
     fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
     {{/fields}}
@@ -46,12 +51,27 @@ pub trait Resolve{{name}} {
 ////////////////////////////////////////////////////////////////////////////////
 
 {{#interfaces}}
-pub trait {{name}} {
-    type Schema: Schema;
-
+pub trait {{name}}: Any + HasSchema {
     {{#fields}}
     fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
     {{/fields}}
+}
+
+impl<S> {{name}}<Schema=S> where S: Schema {
+    pub fn is<T: {{name}}>(&self) -> bool {
+        TypeId::of::<T>() == Any::get_type_id(self)
+    }
+
+    pub fn downcast_ref<T: {{name}}>(&self) -> Option<&T> {
+        if self.is::<T>() {
+            unsafe {
+                let trait_object: TraitObject = transmute(self);
+                Some(transmute(trait_object.data))
+            }
+        } else {
+            None
+        }
+    }
 }
 
 {{/interfaces}}
@@ -60,6 +80,21 @@ pub trait {{name}} {
 // PLUMBING
 // Everything after this line is plumbing machinery, you can ignore it
 ////////////////////////////////////////////////////////////////////////////////
+
+pub trait Any: StdAny {
+    /// Gets the `TypeId` of `self`.
+    #[doc(hidden)]
+    fn get_type_id(&self) -> TypeId;
+}
+
+impl<T: StdAny> Any for T {
+    fn get_type_id(&self) -> TypeId { TypeId::of::<T>() }
+}
+
+pub struct TraitObject {
+    pub data: *mut (),
+    pub vtable: *mut (),
+}
 
 {{#query_root}}
 impl<'a, T> Serialize for QueryResult<'a, T> where T: 'a + Resolve{{name}} {
@@ -96,7 +131,7 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
                 match field.name().as_str() {
                     {{#fields}}
                     "{{name}}" => {
-                        let target = self.target.{{name}}({{{arguments}}});
+                        let target = Resolve{{object_name}}::{{name}}(self.target, {{{arguments}}});
                         {{{preserialize}}}
                         Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
                     },
@@ -155,7 +190,19 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Sche
             Some(&query::Selection::FragmentSpread(_)) => {
                 panic!("not implemented!");
             },
-            Some(&query::Selection::InlineFragment(_)) => {
+            Some(&query::Selection::InlineFragment(ref fragment)) => {
+                match fragment.on().as_str() {
+                    {{#implementors}}
+                    "{{name}}" => {
+                        if let Some(target) = self.target.downcast_ref::<T::{{name}}>() {
+                            let iter = fragment.selection_set().iter();
+                            let mut visitor = {{name}}StructVisitor { target: target, iter: iter };
+                            while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};
+                        }
+                    }
+                    {{/implementors}}
+                    other => panic!("unknown fragment type: {}", other),
+                }
                 Ok(Some(()))
             },
             None => Ok(None)

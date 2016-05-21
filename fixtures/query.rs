@@ -38,9 +38,11 @@ impl schema::Schema for Schema {
     }
 }
 
-impl schema::ResolvePerson for Person {
+impl schema::HasSchema for Person {
     type Schema = Schema;
+}
 
+impl schema::ResolvePerson for Person {
     fn id(&self) -> Cow<str> {
         self.id.as_str().into()
     }
@@ -67,8 +69,6 @@ impl schema::ResolvePerson for Person {
 }
 
 impl schema::Taggable for Person {
-    type Schema = Schema;
-
     fn id(&self) -> Cow<str> {
         schema::ResolvePerson::id(self)
     }
@@ -78,9 +78,11 @@ impl schema::Taggable for Person {
     }
 }
 
-impl schema::ResolveQueryRoot for QueryRoot {
+impl schema::HasSchema for QueryRoot {
     type Schema = Schema;
+}
 
+impl schema::ResolveQueryRoot for QueryRoot {
     fn person(&self, id: Cow<str>) -> Person {
         Person {
             id: id.to_string(),
@@ -98,7 +100,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
         }
     }
 
-    fn tagged(&self, _tags: Option<Vec<Cow<str>>>) -> Vec<Box<schema::Taggable<Schema=Self::Schema>>> {
+    fn tagged(&self, _tags: Option<Vec<Cow<str>>>) -> Vec<Box<schema::Taggable<Schema=<Self as schema::HasSchema>::Schema>>> {
         vec![
             Box::new(self.person("6543".into())),
             Box::new(self.post("9876".into())),
@@ -106,9 +108,11 @@ impl schema::ResolveQueryRoot for QueryRoot {
     }
 }
 
-impl schema::ResolvePost for Post {
+impl schema::HasSchema for Post {
     type Schema = Schema;
+}
 
+impl schema::ResolvePost for Post {
     fn id(&self) -> Cow<str> {
         self.id.as_str().into()
     }
@@ -123,8 +127,6 @@ impl schema::ResolvePost for Post {
 }
 
 impl schema::Taggable for Post {
-    type Schema = Schema;
-
     fn id(&self) -> Cow<str> {
         schema::ResolvePost::id(self)
     }

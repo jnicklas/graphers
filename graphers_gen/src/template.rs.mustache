@@ -1,10 +1,7 @@
 extern crate graphers_core;
 extern crate serde;
 
-use std::any::Any as StdAny;
-use std::any::TypeId;
 use std::borrow::Cow;
-use std::mem::transmute;
 use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
 use self::graphers_core::*;
@@ -37,7 +34,7 @@ pub trait HasSchema {
 }
 
 {{#objects}}
-pub trait Resolve{{name}}: HasSchema + {{{implemented_interfaces}}} {
+pub trait Resolve{{name}}: HasSchema + Sized {
     {{#fields}}
     fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
     {{/fields}}
@@ -46,55 +43,9 @@ pub trait Resolve{{name}}: HasSchema + {{{implemented_interfaces}}} {
 {{/objects}}
 
 ////////////////////////////////////////////////////////////////////////////////
-// INTERFACES
-// GraphQL interfaces which can be implemented by other types
-////////////////////////////////////////////////////////////////////////////////
-
-{{#interfaces}}
-pub trait {{name}}: Any + HasSchema {
-    {{#fields}}
-    fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
-    {{/fields}}
-}
-
-impl<S> {{name}}<Schema=S> where S: Schema {
-    pub fn is<T: {{name}}>(&self) -> bool {
-        TypeId::of::<T>() == Any::get_type_id(self)
-    }
-
-    pub fn downcast_ref<T: {{name}}>(&self) -> Option<&T> {
-        if self.is::<T>() {
-            unsafe {
-                let trait_object: TraitObject = transmute(self);
-                Some(transmute(trait_object.data))
-            }
-        } else {
-            None
-        }
-    }
-}
-
-{{/interfaces}}
-
-////////////////////////////////////////////////////////////////////////////////
 // PLUMBING
 // Everything after this line is plumbing machinery, you can ignore it
 ////////////////////////////////////////////////////////////////////////////////
-
-pub trait Any: StdAny {
-    /// Gets the `TypeId` of `self`.
-    #[doc(hidden)]
-    fn get_type_id(&self) -> TypeId;
-}
-
-impl<T: StdAny> Any for T {
-    fn get_type_id(&self) -> TypeId { TypeId::of::<T>() }
-}
-
-pub struct TraitObject {
-    pub data: *mut (),
-    pub vtable: *mut (),
-}
 
 {{#query_root}}
 impl<'a, T> Serialize for QueryResult<'a, T> where T: 'a + Resolve{{name}} {
@@ -153,22 +104,49 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Reso
 {{/objects}}
 
 {{#interfaces}}
+pub trait Has{{name}} {
+    type {{name}};
+}
+
+pub enum {{name}}<S> where S: Schema {
+    {{#implementors}}
+    {{name}}(S::{{name}}),
+    {{/implementors}}
+}
+
+impl<S> {{name}}<S> where S: Schema {
+    {{#fields}}
+    fn {{field_name}}(&self, {{{parameters}}}) -> {{{ty}}} {
+        match self {
+            {{#implementors}}
+                &{{interface_name}}::{{name}}(ref target) => target.{{field_name}}({{{parameter_names}}}),
+            {{/implementors}}
+        }
+    }
+    {{/fields}}
+}
+
+impl<T> Has{{name}} for T where T: HasSchema {
+    type {{name}} = {{name}}<T::Schema>;
+}
+
+
 struct {{name}}Selection<'a, T> where T: 'a + Schema {
-    target: Box<{{name}}<Schema=T>>,
+    target: {{name}}<T>,
     selection_set: &'a [query::Selection],
 }
 
 impl<'a, T> Serialize for {{name}}Selection<'a, T> where T: 'a + Schema {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         serializer.serialize_map({{name}}StructVisitor {
-            target: &*self.target,
+            target: &self.target,
             iter: self.selection_set.iter(),
         })
     }
 }
 
 struct {{name}}StructVisitor<'a, T, I> where T: 'a + Schema, I: Iterator<Item=&'a query::Selection> {
-    target: &'a {{name}}<Schema=T>,
+    target: &'a {{name}}<T>,
     iter: I,
 }
 
@@ -194,7 +172,7 @@ impl<'a, T, I> MapVisitor for {{name}}StructVisitor<'a, T, I> where T: 'a + Sche
                 match fragment.on().as_str() {
                     {{#implementors}}
                     "{{name}}" => {
-                        if let Some(target) = self.target.downcast_ref::<T::{{name}}>() {
+                        if let &{{interface_name}}::{{name}}(ref target) = self.target {
                             let iter = fragment.selection_set().iter();
                             let mut visitor = {{name}}StructVisitor { target: target, iter: iter };
                             while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};

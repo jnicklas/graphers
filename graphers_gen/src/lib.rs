@@ -21,6 +21,10 @@ fn parameters(context: &Context, field: &schema::Field) -> String {
     }).collect::<Vec<_>>().join(", ")
 }
 
+fn parameter_names(_context: &Context, field: &schema::Field) -> String {
+    field.arguments().iter().map(|a| a.name().as_str()).collect::<Vec<_>>().join(", ")
+}
+
 fn arguments(context: &Context, field: &schema::Field) -> String {
     field.arguments().iter().map(|a| {
         let rust_type = RustType::from(a.ty().clone());
@@ -86,6 +90,7 @@ impl Processor {
             builder = builder.push_map(|builder| {
                 builder
                 .insert_str("name", interface.name())
+                .insert_str("interface_name", interface.name())
                 .insert_vec("implementors", |builder| { self.objects(context, &context.implementors_of(interface), builder) })
                 .insert_vec("fields", |mut builder| {
                     for field in interface.fields() {
@@ -93,8 +98,10 @@ impl Processor {
                             let rust_type = RustType::from(field.ty().clone());
                             builder
                                 .insert_str("name", field.name())
+                                .insert_str("field_name", field.name())
                                 .insert_str("ty", rust_type.to_rust(&context))
                                 .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                                .insert_str("parameter_names", parameter_names(&context, &field))
                                 .insert_str("parameters", parameters(&context, &field))
                                 .insert_str("arguments", arguments(&context, &field))
                         })

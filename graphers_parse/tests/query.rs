@@ -16,11 +16,10 @@ fn test_basic_query() {
 
     let query = context.query().expect("there should be a query");
 
-    let person_field = query.fields().get(0).expect("should have a person field");
+    let person_field = query.selection_set().get(0).and_then(|s| s.field()).expect("should have a person field");
 
-    let subquery = person_field.subquery().expect("should have subquery");
-    let first_name_field = subquery.fields().get(0).expect("should have a first name field");
-    let friend_field = subquery.fields().get(1).expect("should have a friend field");
+    let first_name_field = person_field.selection_set().get(0).and_then(|s| s.field()).expect("should have a first name field");
+    let friend_field = person_field.selection_set().get(1).and_then(|s| s.field()).expect("should have a friend field");
 
     assert_eq!(person_field.name().as_str(), "person");
     assert_eq!(first_name_field.name().as_str(), "first_name");

@@ -1,7 +1,8 @@
 extern crate graphers_core as core;
 extern crate graphers_parse as parse;
 
-use core::*;
+use core::TypeName;
+use core::schema::*;
 
 #[test]
 fn test_basic_schema() {

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use field_name::FieldName;
 use std::borrow::Cow;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Int(i32),
     Float(f32),

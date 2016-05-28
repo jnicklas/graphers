@@ -19,7 +19,7 @@ fn error<T>(c: ErrorCode, l: usize) -> Result<T,Error> {
     Err(Error { location: l, code: c })
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum Tok<'input> {
     // Symbols
     Bang,
@@ -48,7 +48,7 @@ pub enum Tok<'input> {
     // Literals
     Identifier(&'input str),
     IntValue(i32),
-    // FloatValue,
+    FloatValue(f32),
     StringValue(&'input str),
 }
 
@@ -131,11 +131,6 @@ impl<'input> Tokenizer<'input> {
                     }
                 }
 
-                Some((idx0, '0')) => {
-                    self.bump();
-                    Some(Ok((idx0, IntValue(0), idx0+1)))
-                }
-
                 Some((idx0, '-')) => {
                     match self.bump() {
                         Some((idx1, '0')) => {
@@ -147,11 +142,13 @@ impl<'input> Tokenizer<'input> {
                                 Ok((idx1, IntValue(value), idx2)) => {
                                     Some(Ok((idx1, IntValue(-value), idx2)))
                                 },
+                                Ok((idx1, FloatValue(value), idx2)) => {
+                                    Some(Ok((idx1, FloatValue(-value), idx2)))
+                                },
                                 result => Some(result)
                             }
                         }
                         _ => {
-                            println!("here {:?}", idx0);
                             Some(error(UnrecognizedToken, idx0))
                         }
                     }
@@ -213,14 +210,43 @@ impl<'input> Tokenizer<'input> {
     }
 
     fn number(&mut self, idx0: usize) -> Result<Spanned<Tok<'input>>, Error> {
-        let (idx0, number_str, end) = match self.take_while(is_number_continue) {
-            Some(end) => (idx0, &self.text[idx0..end], end),
-            None => (idx0, &self.text[idx0..], self.text.len()),
+        let mut did_see_float = false;
+
+        let (idx0, number_str, end) = {
+            let is_number_continue = |c: char| -> bool {
+                match c {
+                    '0'...'9' => true, // numbers cannot start with a zero
+                    '.' => {
+                        did_see_float = true;
+                        true
+                    }
+                    'e' => {
+                        did_see_float = true;
+                        true
+                    }
+                    'E' => {
+                        did_see_float = true;
+                        true
+                    }
+                    '-' => true,
+                    '+' => true,
+                    _ => false
+                }
+            };
+
+            match self.take_while(is_number_continue) {
+                Some(end) => (idx0, &self.text[idx0..end], end),
+                None => (idx0, &self.text[idx0..], self.text.len()),
+            }
         };
 
-        let number = number_str.parse().expect("unable to parse number");
-
-        Ok((idx0, Tok::IntValue(number), end))
+        if did_see_float {
+            let number = number_str.parse().expect("unable to parse number as float");
+            Ok((idx0, Tok::FloatValue(number), end))
+        } else {
+            let number = number_str.parse().expect("unable to parse number as integer");
+            Ok((idx0, Tok::IntValue(number), end))
+        }
     }
 
     fn string_literal(&mut self, idx0: usize) -> Result<Spanned<Tok<'input>>, Error> {
@@ -315,15 +341,7 @@ impl<'input> Iterator for Tokenizer<'input> {
 
 fn is_number_start(c: char) -> bool {
     match c {
-        '1'...'9' => true, // numbers cannot start with a zero
-        _ => false
-    }
-}
-
-fn is_number_continue(c: char) -> bool {
-    match c {
         '0'...'9' => true, // numbers cannot start with a zero
-        '.' => true,
         _ => false
     }
 }

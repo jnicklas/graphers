@@ -62,7 +62,7 @@ Value: query::Value = {
     <value:"String"> => query::Value::String(value.into()),
     // ConstVariable
     <value:"IntValue"> => query::Value::Int(value),
-    // FloatValue
+    <value:"FloatValue"> => query::Value::Float(value),
     // BooleanValue
     // EnumValue
     <list:ListValueConst> => query::Value::List(list),
@@ -199,6 +199,7 @@ extern {
         "identifier" => Tok::Identifier(<&'input str>),
         "String" => Tok::StringValue(<&'input str>),
         "IntValue" => Tok::IntValue(<i32>),
+        "FloatValue" => Tok::FloatValue(<f32>),
 
         "!" => Tok::Dollar,
         "$" => Tok::Bang,

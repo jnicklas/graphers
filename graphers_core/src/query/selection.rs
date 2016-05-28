@@ -7,3 +7,13 @@ pub enum Selection {
     FragmentSpread(TypeName),
     InlineFragment(InlineFragment),
 }
+
+impl Selection {
+    pub fn field(&self) -> Option<&Field> {
+        if let &Selection::Field(ref field) = self {
+            Some(field)
+        } else {
+            None
+        }
+    }
+}

@@ -1,4 +1,3 @@
-// use field_name::FieldName;
 use query::Selection;
 
 #[derive(Debug)]
@@ -14,13 +13,4 @@ impl Query {
     pub fn selection_set(&self) -> &[Selection] {
         &self.selection_set
     }
-
-    // pub fn get<'a>(&self, name: &'a FieldName) -> Option<&Selection> {
-    //     for field in &self.selection_set {
-    //         if field.name() == name {
-    //             return Some(&field)
-    //         }
-    //     };
-    //     None
-    // }
 }

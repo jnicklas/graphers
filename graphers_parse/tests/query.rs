@@ -35,3 +35,31 @@ fn test_basic_query() {
     assert_eq!(friend_field.arguments()[0].name().as_str(), "name");
     assert_eq!(friend_field.arguments()[0].value(), &query::Value::String("Mark Zuckerberg".into()));
 }
+
+fn get_first_arg<'query>(query: &'query query::Query, name: &str) -> &'query query::Value {
+    let field = query.selection_set().iter()
+        .filter_map(|s| s.field())
+        .filter(|f| f.name().as_str() == name)
+        .nth(0).expect(&format!("no argument named {}", name));
+    field.arguments().get(0).expect("has no argument").value()
+}
+
+#[test]
+fn test_parse_int() {
+    let context = parse::parse("
+        query {
+            zero(arg: 0)
+            negative_zero(arg: -0)
+            positive(arg: 1234)
+            negative(arg: -1234)
+            # trailing_zero(arg: 12340)
+        }
+    ");
+
+    let query = context.query().expect("there should be a query");
+
+    assert_eq!(get_first_arg(query, "zero"), &query::Value::Int(0));
+    assert_eq!(get_first_arg(query, "negative_zero"), &query::Value::Int(0));
+    assert_eq!(get_first_arg(query, "positive"), &query::Value::Int(1234));
+    assert_eq!(get_first_arg(query, "negative"), &query::Value::Int(-1234));
+}

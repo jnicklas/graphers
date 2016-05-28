@@ -2,6 +2,7 @@ extern crate graphers_core as core;
 extern crate graphers_parse as parse;
 
 use core::query::Value;
+use core::FieldName;
 
 #[test]
 fn test_basic_query() {
@@ -105,4 +106,13 @@ fn test_parse_empty_list() {
     assert_eq!(list, Value::List(vec![]));
 }
 
+#[test]
+fn test_parse_object() {
+    let object = match get_first_arg("query { a(b: { foo: \"bar\", quox: 1234 }) }") {
+        Value::Object(object) => object,
+        _ => panic!("expected it to be an object"),
+    };
 
+    assert_eq!(object.get(&FieldName::new("foo")), Some(&Value::String("bar".into())));
+    assert_eq!(object.get(&FieldName::new("quox")), Some(&Value::Int(1234)));
+}

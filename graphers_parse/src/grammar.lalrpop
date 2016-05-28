@@ -4,6 +4,7 @@ use super::OperationType;
 use definition::Definition;
 use document::Document;
 use tok::{self, Tok};
+use std::collections::BTreeMap;
 
 grammar<'input>(text: &'input str)["LALR(1)"];
 
@@ -67,16 +68,20 @@ Value: query::Value = {
     <value:"false"> => query::Value::Boolean(false),
     // EnumValue
     <list:ListValue> => query::Value::List(list),
-    // <object:ObjectValue> => query::Value::Object(object),
+    <object:ObjectValue> => query::Value::Object(object),
 };
 
 ListValue: Vec<query::Value> = {
     "[" <(Value)*> "]"
 };
 
-// Object: Vec<query::Value> = {
-//     "{" <(ObjectField)+> "}"
-// };
+ObjectValue: BTreeMap<FieldName, query::Value> = {
+    "{" <items:(ObjectValueItem)*> "}" => { items.into_iter().collect() }
+};
+
+ObjectValueItem: (FieldName, query::Value) = {
+    <name:FieldName> ":" <value:Value> => { (name, value) }
+};
 
 TypeSystemDefinition: Definition = {
     SchemaDefinition,

@@ -66,13 +66,17 @@ Value: query::Value = {
     <value:"true"> => query::Value::Boolean(true),
     <value:"false"> => query::Value::Boolean(false),
     // EnumValue
-    <list:ListValueConst> => query::Value::List(list),
-    // ObjectValueConst
+    <list:ListValue> => query::Value::List(list),
+    // <object:ObjectValue> => query::Value::Object(object),
 };
 
-ListValueConst: Vec<query::Value> = {
-    "[" <(Value)+> "]"
+ListValue: Vec<query::Value> = {
+    "[" <(Value)*> "]"
 };
+
+// Object: Vec<query::Value> = {
+//     "{" <(ObjectField)+> "}"
+// };
 
 TypeSystemDefinition: Definition = {
     SchemaDefinition,

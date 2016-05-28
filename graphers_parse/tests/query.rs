@@ -1,7 +1,7 @@
 extern crate graphers_core as core;
 extern crate graphers_parse as parse;
 
-use core::*;
+use core::query::Value;
 
 #[test]
 fn test_basic_query() {
@@ -30,13 +30,13 @@ fn test_basic_query() {
     assert_eq!(friend_field.alias().as_str(), "zuck");
 
     assert_eq!(person_field.arguments()[0].name().as_str(), "id");
-    assert_eq!(person_field.arguments()[0].value(), &query::Value::String("1".into()));
+    assert_eq!(person_field.arguments()[0].value(), &Value::String("1".into()));
     assert_eq!(first_name_field.arguments().len(), 0);
     assert_eq!(friend_field.arguments()[0].name().as_str(), "name");
-    assert_eq!(friend_field.arguments()[0].value(), &query::Value::String("Mark Zuckerberg".into()));
+    assert_eq!(friend_field.arguments()[0].value(), &Value::String("Mark Zuckerberg".into()));
 }
 
-fn get_first_arg<'query>(input: &'query str) -> query::Value {
+fn get_first_arg<'query>(input: &'query str) -> Value {
     let context = parse::parse(input);
     let query = context.query().expect("there should be a query");
     let selection = query.selection_set().get(0).expect("must have a first selection");
@@ -47,48 +47,62 @@ fn get_first_arg<'query>(input: &'query str) -> query::Value {
 
 #[test]
 fn test_parse_int() {
-    assert_eq!(get_first_arg("query { a(b: 0) }"), query::Value::Int(0));
-    assert_eq!(get_first_arg("query { a(b: -0) }"), query::Value::Int(0));
-    assert_eq!(get_first_arg("query { a(b: 1234) }"), query::Value::Int(1234));
-    assert_eq!(get_first_arg("query { a(b: -1234) }"), query::Value::Int(-1234));
+    assert_eq!(get_first_arg("query { a(b: 0) }"), Value::Int(0));
+    assert_eq!(get_first_arg("query { a(b: -0) }"), Value::Int(0));
+    assert_eq!(get_first_arg("query { a(b: 1234) }"), Value::Int(1234));
+    assert_eq!(get_first_arg("query { a(b: -1234) }"), Value::Int(-1234));
 }
 
 #[test]
 fn test_parse_float() {
-    assert_eq!(get_first_arg("query { a(b: 0.34) }"), query::Value::Float(0.34));
-    assert_eq!(get_first_arg("query { a(b: 12.34) }"), query::Value::Float(12.34));
-    assert_eq!(get_first_arg("query { a(b: 1234e12) }"), query::Value::Float(1234e12));
-    assert_eq!(get_first_arg("query { a(b: 12.34e12) }"), query::Value::Float(12.34e12));
-    assert_eq!(get_first_arg("query { a(b: 1234E12) }"), query::Value::Float(1234E12));
-    assert_eq!(get_first_arg("query { a(b: 12.34E12) }"), query::Value::Float(12.34E12));
-    assert_eq!(get_first_arg("query { a(b: 1234e+12) }"), query::Value::Float(1234e+12));
-    assert_eq!(get_first_arg("query { a(b: 12.34e+12) }"), query::Value::Float(12.34e+12));
-    assert_eq!(get_first_arg("query { a(b: 1234E+12) }"), query::Value::Float(1234E+12));
-    assert_eq!(get_first_arg("query { a(b: 12.34E+12) }"), query::Value::Float(12.34E+12));
-    assert_eq!(get_first_arg("query { a(b: 1234e-12) }"), query::Value::Float(1234e-12));
-    assert_eq!(get_first_arg("query { a(b: 12.34e-12) }"), query::Value::Float(12.34e-12));
-    assert_eq!(get_first_arg("query { a(b: 1234E-12) }"), query::Value::Float(1234E-12));
-    assert_eq!(get_first_arg("query { a(b: 12.34E-12) }"), query::Value::Float(12.34E-12));
-    assert_eq!(get_first_arg("query { a(b: 0.34) }"), query::Value::Float(0.34));
-    assert_eq!(get_first_arg("query { a(b: 12.34) }"), query::Value::Float(12.34));
-    assert_eq!(get_first_arg("query { a(b: -1234e12) }"), query::Value::Float(-1234e12));
-    assert_eq!(get_first_arg("query { a(b: -12.34e12) }"), query::Value::Float(-12.34e12));
-    assert_eq!(get_first_arg("query { a(b: -1234E12) }"), query::Value::Float(-1234E12));
-    assert_eq!(get_first_arg("query { a(b: -12.34E12) }"), query::Value::Float(-12.34E12));
-    assert_eq!(get_first_arg("query { a(b: -1234e+12) }"), query::Value::Float(-1234e+12));
-    assert_eq!(get_first_arg("query { a(b: -12.34e+12) }"), query::Value::Float(-12.34e+12));
-    assert_eq!(get_first_arg("query { a(b: -1234E+12) }"), query::Value::Float(-1234E+12));
-    assert_eq!(get_first_arg("query { a(b: -12.34E+12) }"), query::Value::Float(-12.34E+12));
-    assert_eq!(get_first_arg("query { a(b: -1234e-12) }"), query::Value::Float(-1234e-12));
-    assert_eq!(get_first_arg("query { a(b: -12.34e-12) }"), query::Value::Float(-12.34e-12));
-    assert_eq!(get_first_arg("query { a(b: -1234E-12) }"), query::Value::Float(-1234E-12));
-    assert_eq!(get_first_arg("query { a(b: -12.34E-12) }"), query::Value::Float(-12.34E-12));
-}
-
-#[test]
-fn test_parse_boolean() {
-    assert_eq!(get_first_arg("query { a(b: true) }"), query::Value::Boolean(true));
-    assert_eq!(get_first_arg("query { a(b: false) }"), query::Value::Boolean(false));
+    assert_eq!(get_first_arg("query { a(b: 0.34) }"), Value::Float(0.34));
+    assert_eq!(get_first_arg("query { a(b: 12.34) }"), Value::Float(12.34));
+    assert_eq!(get_first_arg("query { a(b: 1234e12) }"), Value::Float(1234e12));
+    assert_eq!(get_first_arg("query { a(b: 12.34e12) }"), Value::Float(12.34e12));
+    assert_eq!(get_first_arg("query { a(b: 1234E12) }"), Value::Float(1234E12));
+    assert_eq!(get_first_arg("query { a(b: 12.34E12) }"), Value::Float(12.34E12));
+    assert_eq!(get_first_arg("query { a(b: 1234e+12) }"), Value::Float(1234e+12));
+    assert_eq!(get_first_arg("query { a(b: 12.34e+12) }"), Value::Float(12.34e+12));
+    assert_eq!(get_first_arg("query { a(b: 1234E+12) }"), Value::Float(1234E+12));
+    assert_eq!(get_first_arg("query { a(b: 12.34E+12) }"), Value::Float(12.34E+12));
+    assert_eq!(get_first_arg("query { a(b: 1234e-12) }"), Value::Float(1234e-12));
+    assert_eq!(get_first_arg("query { a(b: 12.34e-12) }"), Value::Float(12.34e-12));
+    assert_eq!(get_first_arg("query { a(b: 1234E-12) }"), Value::Float(1234E-12));
+    assert_eq!(get_first_arg("query { a(b: 12.34E-12) }"), Value::Float(12.34E-12));
+    assert_eq!(get_first_arg("query { a(b: 0.34) }"), Value::Float(0.34));
+    assert_eq!(get_first_arg("query { a(b: 12.34) }"), Value::Float(12.34));
+    assert_eq!(get_first_arg("query { a(b: -1234e12) }"), Value::Float(-1234e12));
+    assert_eq!(get_first_arg("query { a(b: -12.34e12) }"), Value::Float(-12.34e12));
+    assert_eq!(get_first_arg("query { a(b: -1234E12) }"), Value::Float(-1234E12));
+    assert_eq!(get_first_arg("query { a(b: -12.34E12) }"), Value::Float(-12.34E12));
+    assert_eq!(get_first_arg("query { a(b: -1234e+12) }"), Value::Float(-1234e+12));
+    assert_eq!(get_first_arg("query { a(b: -12.34e+12) }"), Value::Float(-12.34e+12));
+    assert_eq!(get_first_arg("query { a(b: -1234E+12) }"), Value::Float(-1234E+12));
+    assert_eq!(get_first_arg("query { a(b: -12.34E+12) }"), Value::Float(-12.34E+12));
+    assert_eq!(get_first_arg("query { a(b: -1234e-12) }"), Value::Float(-1234e-12));
+    assert_eq!(get_first_arg("query { a(b: -12.34e-12) }"), Value::Float(-12.34e-12));
+    assert_eq!(get_first_arg("query { a(b: -1234E-12) }"), Value::Float(-1234E-12));
+    assert_eq!(get_first_arg("query { a(b: -12.34E-12) }"), Value::Float(-12.34E-12));
 }
 
 // TODO: test integer and float overflow!
+
+#[test]
+fn test_parse_boolean() {
+    assert_eq!(get_first_arg("query { a(b: true) }"), Value::Boolean(true));
+    assert_eq!(get_first_arg("query { a(b: false) }"), Value::Boolean(false));
+}
+
+#[test]
+fn test_parse_list() {
+    let list = get_first_arg("query { a(b: [\"foo\", \"bar\"]) }");
+    assert_eq!(list, Value::List(vec![Value::String("foo".into()), Value::String("bar".into())]));
+}
+
+#[test]
+fn test_parse_empty_list() {
+    let list = get_first_arg("query { a(b: []) }");
+    assert_eq!(list, Value::List(vec![]));
+}
+
+

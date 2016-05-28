@@ -85,4 +85,10 @@ fn test_parse_float() {
     assert_eq!(get_first_arg("query { a(b: -12.34E-12) }"), query::Value::Float(-12.34E-12));
 }
 
+#[test]
+fn test_parse_boolean() {
+    assert_eq!(get_first_arg("query { a(b: true) }"), query::Value::Boolean(true));
+    assert_eq!(get_first_arg("query { a(b: false) }"), query::Value::Boolean(false));
+}
+
 // TODO: test integer and float overflow!

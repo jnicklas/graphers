@@ -44,6 +44,8 @@ pub enum Tok<'input> {
     Interface,
     Implements,
     On,
+    True,
+    False,
 
     // Literals
     Identifier(&'input str),
@@ -60,6 +62,8 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("interface", Interface),
     ("implements", Implements),
     ("on", On),
+    ("true", True),
+    ("false", False),
     ];
 
 

@@ -63,7 +63,8 @@ Value: query::Value = {
     // ConstVariable
     <value:"IntValue"> => query::Value::Int(value),
     <value:"FloatValue"> => query::Value::Float(value),
-    // BooleanValue
+    <value:"true"> => query::Value::Boolean(true),
+    <value:"false"> => query::Value::Boolean(false),
     // EnumValue
     <list:ListValueConst> => query::Value::List(list),
     // ObjectValueConst
@@ -200,6 +201,8 @@ extern {
         "String" => Tok::StringValue(<&'input str>),
         "IntValue" => Tok::IntValue(<i32>),
         "FloatValue" => Tok::FloatValue(<f32>),
+        "true" => Tok::True,
+        "false" => Tok::False,
 
         "!" => Tok::Dollar,
         "$" => Tok::Bang,

@@ -8,8 +8,7 @@ extern crate graphers_core as core;
 pub use document::Document;
 pub use definition::Definition;
 
-use core::Context;
-use core::schema::TypeDefinition;
+use core::{Context, TypeDefinition};
 
 #[derive(Clone, Copy, Debug)]
 pub enum OperationType { Query, Mutation }
@@ -25,10 +24,11 @@ pub fn parse(input: &str) -> Context {
 
     for definition in document.definitions {
         match definition {
-            Definition::Object(o) => types.push(TypeDefinition::Object(o)),
-            Definition::Interface(o) => types.push(TypeDefinition::Interface(o)),
-            Definition::Schema(s) => schema = Some(s),
-            Definition::Query(q) => query = Some(q),
+            Definition::Object(value) => types.push(TypeDefinition::Object(value)),
+            Definition::Interface(value) => types.push(TypeDefinition::Interface(value)),
+            Definition::Schema(value) => schema = Some(value),
+            Definition::Query(value) => query = Some(value),
+            Definition::Fragment(value) => types.push(TypeDefinition::Fragment(value)),
         }
     }
 

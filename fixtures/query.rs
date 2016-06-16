@@ -23,8 +23,8 @@ pub struct Post {
 pub struct Schema;
 
 impl Schema {
-    pub fn query<'a>(&self, query: &'a ::graphers::Query) -> schema::QueryResult<'a, QueryRoot> {
-        schema::Schema::query(self, query)
+    pub fn query<'a>(&self, context: &'a ::graphers::Context) -> schema::QueryResult<'a, QueryRoot> {
+        schema::query(self, context)
     }
 }
 
@@ -33,7 +33,7 @@ impl schema::Schema for Schema {
     type Person = Person;
     type Post = Post;
 
-    fn root(&self) -> QueryRoot {
+    fn query_root(&self) -> QueryRoot {
         QueryRoot
     }
 }

@@ -11,6 +11,11 @@ use std::any::TypeId;
 use std::mem::transmute;
 
 {{#query_root}}
+pub fn query<'a, T>(schema: &T, context: &'a Context) -> QueryResult<'a, <T as Schema>::{{name}}> where T: Schema {
+	let query = context.query().expect("should define a query");
+	QueryResult(Selection::new(context, {{name}}(schema.query_root()), query.selection_set()))
+}
+
 pub struct QueryResult<'a, T>(Selection<'a, {{name}}<T>>) where T: 'static + Resolve{{name}};
 {{/query_root}}
 
@@ -25,11 +30,7 @@ pub trait Schema: 'static {
     {{/objects}}
 
     {{#query_root}}
-    fn query<'a>(&self, query: &'a query::Query) -> QueryResult<'a, Self::{{name}}> {
-        QueryResult(Selection::new({{name}}(self.root()), query.selection_set()))
-    }
-
-    fn root(&self) -> Self::{{name}};
+    fn query_root(&self) -> Self::{{name}};
     {{/query_root}}
 }
 
@@ -97,13 +98,13 @@ struct {{name}}<T>(T) where T: 'static + Resolve{{name}};
 struct {{name}}Ref<'a, T>(&'a T) where T: 'a + Resolve{{name}};
 
 impl<T> Select for {{name}}<T> where T: Resolve{{name}} {
-    fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
-        {{name}}Ref(&self.0).select(selection, serializer)
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+        {{name}}Ref(&self.0).select(context, selection, serializer)
     }
 }
 
 impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
-    fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {
@@ -117,13 +118,21 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
                     name => panic!("unknown field {}", name),
                 }
             },
-            &query::Selection::FragmentSpread(_) => {
-                panic!("not implemented fragment spread!");
+            &query::Selection::FragmentSpread(ref name) => {
+				let definition = context.resolve(name).expect("unable to find type");
+				let fragment = definition.fragment().expect("type is not a fragment");
+
+				if fragment.on().as_str() == "{{name}}" {
+					let iter = fragment.selection_set().iter();
+					let mut visitor = SelectionStructVisitor::new(context, self, iter);
+					while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};
+				}
+				Ok(Some(()))
             },
             &query::Selection::InlineFragment(ref fragment) => {
 				if fragment.on().as_str() == "{{name}}" {
 					let iter = fragment.selection_set().iter();
-					let mut visitor = SelectionStructVisitor::new(self, iter);
+					let mut visitor = SelectionStructVisitor::new(context, self, iter);
 					while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};
 				}
 				Ok(Some(()))
@@ -137,11 +146,11 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
 {{#interfaces}}
 
 impl<T> Select for {{name}}<Schema=T> where T: Schema {
-    fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
 		{{#implementors}}
 			if let Some(target) = self.downcast_ref::<T::{{name}}>() {
 				let target_ref = {{name}}Ref(target);
-				return Select::select(&target_ref, selection, serializer)
+				return Select::select(&target_ref, context, selection, serializer)
 			}
 		{{/implementors}}
 		panic!("cannot find implementing type")
@@ -149,11 +158,11 @@ impl<T> Select for {{name}}<Schema=T> where T: Schema {
 }
 
 impl<T> Select for Box<{{name}}<Schema=T>> where T: Schema {
-    fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
 		{{#implementors}}
 			if let Some(target) = self.downcast_ref::<T::{{name}}>() {
 				let target_ref = {{name}}Ref(target);
-				return Select::select(&target_ref, selection, serializer)
+				return Select::select(&target_ref, context, selection, serializer)
 			}
 		{{/implementors}}
 		panic!("cannot find implementing type")

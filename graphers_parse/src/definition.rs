@@ -1,5 +1,5 @@
 use core::schema::{Schema, Object, Interface};
-use core::query::Query;
+use core::query::{Query, Fragment};
 
 #[derive(Debug)]
 pub enum Definition {
@@ -7,4 +7,5 @@ pub enum Definition {
     Object(Object),
     Interface(Interface),
     Query(Query),
+    Fragment(Fragment),
 }

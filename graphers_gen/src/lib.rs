@@ -8,8 +8,7 @@ mod rust_type;
 use std::io::Write;
 use std::path::Path;
 use rust_type::RustType;
-use core::Context;
-use core::schema::{self, TypeDefinition};
+use core::{schema, Context, TypeDefinition};
 
 struct Processor;
 
@@ -40,10 +39,10 @@ fn preserialize(context: &Context, ty: &RustType) -> String {
         &RustType::NamedType(ref name) => {
             match context.resolve(name) {
                 Some(&TypeDefinition::Object(_)) => {
-                    format!("Selection::new({}(target), field.selection_set())", name)
+                    format!("Selection::new(context, {}(target), field.selection_set())", name)
                 }
                 Some(&TypeDefinition::Interface(_)) => {
-                    format!("Selection::new(target, field.selection_set())")
+                    format!("Selection::new(context, target, field.selection_set())")
                 }
                 other => panic!("cannot return type of kind {:?}", other),
             }

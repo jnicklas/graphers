@@ -14,7 +14,7 @@ pub Document: Document = {
 
 Definition: Definition = {
     OperationDefinition,
-    // FragmentDefinition
+    FragmentDefinition,
     TypeSystemDefinition,
 };
 
@@ -83,6 +83,12 @@ ObjectValueItem: (FieldName, query::Value) = {
     <name:FieldName> ":" <value:Value> => { (name, value) }
 };
 
+FragmentDefinition: Definition = {
+    "fragment" <name:TypeName> "on" <on:TypeName> <selection:SelectionSet> => {
+        Definition::Fragment(query::Fragment::new(name, on, selection))
+    }
+};
+
 TypeSystemDefinition: Definition = {
     SchemaDefinition,
     TypeDefinition
@@ -147,6 +153,7 @@ FragmentName: &'input str = {
     "mutation" => { "mutation" },
     "type" => { "type" },
     "interface" => { "interface" },
+    "fragment" => { "fragment" },
     "implements" => { "implements" },
     <value:"identifier"> => { value },
 };
@@ -204,6 +211,7 @@ extern {
         "mutation" => Tok::Mutation,
         "type" => Tok::Type,
         "interface" => Tok::Interface,
+        "fragment" => Tok::Fragment,
         "on" => Tok::On,
         "implements" => Tok::Implements,
         "identifier" => Tok::Identifier(<&'input str>),

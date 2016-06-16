@@ -1,5 +1,5 @@
-use super::core::{TypeName, Context};
-use super::core::schema::{Type, TypeDefinition};
+use super::core::{TypeName, TypeDefinition, Context};
+use super::core::schema::{Type};
 
 pub enum RustType {
     Int,

@@ -12,3 +12,6 @@ path = "../graphers_core"
 
 [dependencies.graphers_parse]
 path = "../graphers_parse"
+
+[dependencies.graphers_perform]
+path = "../graphers_perform"

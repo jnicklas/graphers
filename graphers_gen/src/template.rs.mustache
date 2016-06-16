@@ -1,48 +1,12 @@
 extern crate graphers_core;
+extern crate graphers_perform;
 extern crate serde;
 
 use std::borrow::Cow;
 use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
 use self::graphers_core::*;
-
-// EXTRACTABLE
-
-struct Selection<'a, T> where T: 'a + Select {
-    target: T,
-    selection_set: &'a [query::Selection],
-}
-
-impl<'a, T> Serialize for Selection<'a, T> where T: 'a + Select {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-        serializer.serialize_map(SelectionStructVisitor {
-            target: &self.target,
-            iter: self.selection_set.iter(),
-        })
-    }
-}
-
-struct SelectionStructVisitor<'a, T, I> where T: 'a + Select, I: Iterator<Item=&'a query::Selection> {
-    target: &'a T,
-    iter: I,
-}
-
-impl<'a, T, I> MapVisitor for SelectionStructVisitor<'a, T, I> where T: 'a + Select, I: Iterator<Item=&'a query::Selection> {
-    fn visit<S>(&mut self, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
-        match self.iter.next() {
-            Some(selection) => {
-                self.target.select(selection, serializer)
-            },
-            None => Ok(None)
-        }
-    }
-}
-
-pub trait Select {
-    fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer;
-}
-
-// END EXTRACTABLE
+use self::graphers_perform::*;
 
 {{#query_root}}
 pub struct QueryResult<'a, T>(Selection<'a, {{name}}<T>>) where T: 'static + Resolve{{name}};
@@ -60,7 +24,7 @@ pub trait Schema: 'static {
 
     {{#query_root}}
     fn query<'a>(&self, query: &'a query::Query) -> QueryResult<'a, Self::{{name}}> {
-        QueryResult(Selection { target: {{name}}(self.root()), selection_set: query.selection_set() })
+        QueryResult(Selection::new({{name}}(self.root()), query.selection_set()))
     }
 
     fn root(&self) -> Self::{{name}};
@@ -183,7 +147,8 @@ impl<'a, T> Select for {{name}}<T> where T: Schema {
                     "{{name}}" => {
                         if let &{{interface_name}}::{{name}}(ref target) = self {
                             let iter = fragment.selection_set().iter();
-                            let mut visitor = SelectionStructVisitor { target: &{{name}}Ref(target), iter: iter };
+                            let target_ref = {{name}}Ref(target);
+                            let mut visitor = SelectionStructVisitor::new(&target_ref, iter);
                             while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};
                         }
                     }

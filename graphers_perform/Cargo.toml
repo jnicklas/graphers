@@ -1,0 +1,10 @@
+[package]
+authors = ["Jonas Nicklas <jonas.nicklas@gmail.com>"]
+name = "graphers_perform"
+version = "0.1.0"
+
+[dependencies]
+serde = "0.7.10"
+
+[dependencies.graphers_core]
+path = "../graphers_core"

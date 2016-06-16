@@ -40,10 +40,10 @@ fn preserialize(context: &Context, ty: &RustType) -> String {
         &RustType::NamedType(ref name) => {
             match context.resolve(name) {
                 Some(&TypeDefinition::Object(_)) => {
-                    format!("Selection {{ target: {}(target), selection_set: field.selection_set() }}", name)
+                    format!("Selection::new({}(target), field.selection_set())", name)
                 }
                 Some(&TypeDefinition::Interface(_)) => {
-                    format!("Selection {{ target: target, selection_set: field.selection_set() }}")
+                    format!("Selection::new(target, field.selection_set())")
                 }
                 other => panic!("cannot return type of kind {:?}", other),
             }

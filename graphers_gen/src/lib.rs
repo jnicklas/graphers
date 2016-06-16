@@ -8,8 +8,8 @@ mod rust_type;
 use std::io::Write;
 use std::path::Path;
 use rust_type::RustType;
-use core::schema;
 use core::Context;
+use core::schema::{self, TypeDefinition};
 
 struct Processor;
 
@@ -35,16 +35,24 @@ fn arguments(context: &Context, field: &schema::Field) -> String {
     }).collect::<Vec<_>>().join(", ")
 }
 
-fn preserialize(ty: &RustType) -> String {
+fn preserialize(context: &Context, ty: &RustType) -> String {
     match ty {
         &RustType::NamedType(ref name) => {
-            format!("{}Selection {{ target: target, selection_set: field.selection_set() }}", name)
+            match context.resolve(name) {
+                Some(&TypeDefinition::Object(_)) => {
+                    format!("Selection {{ target: {}(target), selection_set: field.selection_set() }}", name)
+                }
+                Some(&TypeDefinition::Interface(_)) => {
+                    format!("Selection {{ target: target, selection_set: field.selection_set() }}")
+                }
+                other => panic!("cannot return type of kind {:?}", other),
+            }
         },
         &RustType::List(ref ty) => {
-            format!("target.into_iter().map(|target| {{ {} }}).collect::<Vec<_>>()", preserialize(ty))
+            format!("target.into_iter().map(|target| {{ {} }}).collect::<Vec<_>>()", preserialize(&context, ty))
         },
         &RustType::Option(ref ty) => {
-            format!("target.map(|target| {{ {} }})", preserialize(ty))
+            format!("target.map(|target| {{ {} }})", preserialize(&context, ty))
         },
         _ => "target".into()
     }
@@ -62,7 +70,7 @@ impl Processor {
                     builder
                         .insert_str("name", field.name())
                         .insert_str("ty", rust_type.to_rust(&context))
-                        .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                        .insert_str("preserialize", format!("let target = {};", preserialize(&context, &rust_type)))
                         .insert_str("parameters", parameters(&context, &field))
                         .insert_str("arguments", arguments(&context, &field))
                 })
@@ -100,7 +108,7 @@ impl Processor {
                                 .insert_str("name", field.name())
                                 .insert_str("field_name", field.name())
                                 .insert_str("ty", rust_type.to_rust(&context))
-                                .insert_str("preserialize", format!("let target = {};", preserialize(&rust_type)))
+                                .insert_str("preserialize", format!("let target = {};", preserialize(&context, &rust_type)))
                                 .insert_str("parameter_names", parameter_names(&context, &field))
                                 .insert_str("parameters", parameters(&context, &field))
                                 .insert_str("arguments", arguments(&context, &field))

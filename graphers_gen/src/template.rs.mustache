@@ -7,6 +7,8 @@ use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
 use self::graphers_core::*;
 use self::graphers_perform::*;
+use std::any::TypeId;
+use std::mem::transmute;
 
 {{#query_root}}
 pub struct QueryResult<'a, T>(Selection<'a, {{name}}<T>>) where T: 'static + Resolve{{name}};
@@ -36,13 +38,44 @@ pub trait HasSchema {
 }
 
 {{#objects}}
-pub trait Resolve{{name}}: HasSchema + Sized {
+pub trait Resolve{{name}}: HasSchema + {{{implemented_interfaces}}} {
     {{#fields}}
     fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
     {{/fields}}
 }
 
 {{/objects}}
+
+////////////////////////////////////////////////////////////////////////////////
+// INTERFACES
+// GraphQL interfaces which can be implemented by other types
+////////////////////////////////////////////////////////////////////////////////
+
+{{#interfaces}}
+pub trait {{name}}: Any + HasSchema {
+    {{#fields}}
+    fn {{name}}(&self, {{{parameters}}}) -> {{{ty}}};
+    {{/fields}}
+}
+
+impl<S> {{name}}<Schema=S> where S: Schema {
+    pub fn is<T: {{name}}>(&self) -> bool {
+        TypeId::of::<T>() == Any::get_type_id(self)
+    }
+
+    pub fn downcast_ref<T: {{name}}>(&self) -> Option<&T> {
+        if self.is::<T>() {
+            unsafe {
+                let trait_object: TraitObject = transmute(self);
+                Some(transmute(trait_object.data))
+            }
+        } else {
+            None
+        }
+    }
+}
+
+{{/interfaces}}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PLUMBING
@@ -85,10 +118,15 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
                 }
             },
             &query::Selection::FragmentSpread(_) => {
-                panic!("not implemented!");
+                panic!("not implemented fragment spread!");
             },
-            &query::Selection::InlineFragment(_) => {
-                panic!("not implemented!");
+            &query::Selection::InlineFragment(ref fragment) => {
+				if fragment.on().as_str() == "{{name}}" {
+					let iter = fragment.selection_set().iter();
+					let mut visitor = SelectionStructVisitor::new(self, iter);
+					while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};
+				}
+				Ok(Some(()))
             },
         }
     }
@@ -97,67 +135,29 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
 {{/objects}}
 
 {{#interfaces}}
-pub trait Has{{name}} {
-    type {{name}};
-}
 
-pub enum {{name}}<S> where S: Schema {
-    {{#implementors}}
-    {{name}}(S::{{name}}),
-    {{/implementors}}
-}
-
-impl<S> {{name}}<S> where S: Schema {
-    {{#fields}}
-    fn {{field_name}}(&self, {{{parameters}}}) -> {{{ty}}} {
-        match self {
-            {{#implementors}}
-                &{{interface_name}}::{{name}}(ref target) => target.{{field_name}}({{{parameter_names}}}),
-            {{/implementors}}
-        }
-    }
-    {{/fields}}
-}
-
-impl<T> Has{{name}} for T where T: HasSchema {
-    type {{name}} = {{name}}<T::Schema>;
-}
-
-impl<'a, T> Select for {{name}}<T> where T: Schema {
+impl<T> Select for {{name}}<Schema=T> where T: Schema {
     fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
-        match selection {
-            &query::Selection::Field(ref field) => {
-                match field.name().as_str() {
-                    {{#fields}}
-                    "{{name}}" => {
-                        let target = self.{{name}}({{{arguments}}});
-                        {{{preserialize}}}
-                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
-                    },
-                    {{/fields}}
-                    name => panic!("unknown field {}", name),
-                }
-            },
-            &query::Selection::FragmentSpread(_) => {
-                panic!("not implemented!");
-            },
-            &query::Selection::InlineFragment(ref fragment) => {
-                match fragment.on().as_str() {
-                    {{#implementors}}
-                    "{{name}}" => {
-                        if let &{{interface_name}}::{{name}}(ref target) = self {
-                            let iter = fragment.selection_set().iter();
-                            let target_ref = {{name}}Ref(target);
-                            let mut visitor = SelectionStructVisitor::new(&target_ref, iter);
-                            while let Some(_) = try!(MapVisitor::visit(&mut visitor, serializer)) {};
-                        }
-                    }
-                    {{/implementors}}
-                    other => panic!("unknown fragment type: {}", other),
-                }
-                Ok(Some(()))
-            },
-        }
+		{{#implementors}}
+			if let Some(target) = self.downcast_ref::<T::{{name}}>() {
+				let target_ref = {{name}}Ref(target);
+				return Select::select(&target_ref, selection, serializer)
+			}
+		{{/implementors}}
+		panic!("cannot find implementing type")
     }
 }
+
+impl<T> Select for Box<{{name}}<Schema=T>> where T: Schema {
+    fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+		{{#implementors}}
+			if let Some(target) = self.downcast_ref::<T::{{name}}>() {
+				let target_ref = {{name}}Ref(target);
+				return Select::select(&target_ref, selection, serializer)
+			}
+		{{/implementors}}
+		panic!("cannot find implementing type")
+	}
+}
+
 {{/interfaces}}

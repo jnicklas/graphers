@@ -4,6 +4,9 @@ extern crate graphers_core;
 use self::graphers_core::*;
 use serde::{Serialize, Serializer};
 use serde::ser::{MapVisitor};
+use std::any::Any as StdAny;
+use std::any::TypeId;
+use std::mem::transmute;
 
 pub trait Select {
     fn select<S>(&self, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer;
@@ -49,4 +52,17 @@ impl<'a, T, I> MapVisitor for SelectionStructVisitor<'a, T, I> where T: 'a + Sel
             None => Ok(None)
         }
     }
+}
+
+pub trait Any: StdAny {
+    fn get_type_id(&self) -> TypeId;
+}
+
+impl<T: StdAny> Any for T {
+    fn get_type_id(&self) -> TypeId { TypeId::of::<T>() }
+}
+
+pub struct TraitObject {
+    pub data: *mut (),
+    pub vtable: *mut (),
 }

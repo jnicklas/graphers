@@ -59,23 +59,6 @@ pub trait {{name}}: Any + HasSchema {
     {{/fields}}
 }
 
-impl<S> {{name}}<Schema=S> where S: Schema {
-    pub fn is<T: {{name}}>(&self) -> bool {
-        TypeId::of::<T>() == Any::get_type_id(self)
-    }
-
-    pub fn downcast_ref<T: {{name}}>(&self) -> Option<&T> {
-        if self.is::<T>() {
-            unsafe {
-                let trait_object: TraitObject = transmute(self);
-                Some(transmute(trait_object.data))
-            }
-        } else {
-            None
-        }
-    }
-}
-
 {{/interfaces}}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,6 +127,23 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
 {{/objects}}
 
 {{#interfaces}}
+
+impl<S> {{name}}<Schema=S> where S: Schema {
+    pub fn is<T: {{name}}>(&self) -> bool {
+        TypeId::of::<T>() == Any::get_type_id(self)
+    }
+
+    pub fn downcast_ref<T: {{name}}>(&self) -> Option<&T> {
+        if self.is::<T>() {
+            unsafe {
+                let trait_object: TraitObject = transmute(self);
+                Some(transmute(trait_object.data))
+            }
+        } else {
+            None
+        }
+    }
+}
 
 impl<T> Select for {{name}}<Schema=T> where T: Schema {
     fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {

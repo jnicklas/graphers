@@ -24,3 +24,5 @@ path = "./graphers_perform"
 
 [dev-dependencies]
 iron = "0.3.0"
+
+[workspace]

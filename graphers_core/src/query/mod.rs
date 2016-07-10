@@ -6,7 +6,7 @@ mod selection;
 mod fragment;
 mod inline_fragment;
 
-pub use query::value::Value;
+pub use query::value::{Value, Coerce};
 pub use query::query::Query;
 pub use query::argument::Argument;
 pub use query::field::Field;

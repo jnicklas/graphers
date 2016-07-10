@@ -1,4 +1,4 @@
-use core::schema::{Schema, Object, Interface, Union};
+use core::schema::{Schema, Object, Enum, Interface, Union};
 use core::query::{Query, Fragment};
 
 #[derive(Debug)]
@@ -7,6 +7,7 @@ pub enum Definition {
     Object(Object),
     Interface(Interface),
     Query(Query),
+    Enum(Enum),
     Fragment(Fragment),
     Union(Union),
 }

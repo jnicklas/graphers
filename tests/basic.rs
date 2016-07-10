@@ -134,3 +134,23 @@ fn test_query_with_fragment_on_interface() {
     assert_eq!(tagged[0].find("first_name"), Some(&Value::String(String::from("Jonas"))));
     assert_eq!(tagged[1].find("title"), Some(&Value::String(String::from("Hello GraphQL"))));
 }
+
+#[test]
+fn test_enum_as_input_and_return_value() {
+    let doc = "
+        query {
+            inhabitants(country: GERMANY) { id, first_name, country }
+        }
+    ";
+    let context = graphers::parse(doc);
+
+    let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
+
+    let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
+
+    let result = value.find("inhabitants").expect("should have inhabitants in output").as_array().expect("should be an array");
+
+    assert_eq!(result[0].find("id"), Some(&Value::String(String::from("123"))));
+    assert_eq!(result[0].find("first_name"), Some(&Value::String(String::from("Jonas"))));
+    assert_eq!(result[0].find("country"), Some(&Value::String(String::from("GERMANY"))));
+}

@@ -20,6 +20,7 @@ impl TypeDefinition {
             &TypeDefinition::Interface(ref interface) => interface.name(),
             &TypeDefinition::Fragment(ref fragment) => fragment.name(),
             &TypeDefinition::Union(ref union) => union.name(),
+            &TypeDefinition::Enum(ref en) => en.name(),
             _ => panic!("type name not implemented!")
         }
     }
@@ -51,6 +52,14 @@ impl TypeDefinition {
     pub fn fragment(&self) -> Option<&Fragment> {
         if let &TypeDefinition::Fragment(ref fragment) = self {
             Some(fragment)
+        } else {
+            None
+        }
+    }
+
+    pub fn en(&self) -> Option<&Enum> {
+        if let &TypeDefinition::Enum(ref en) = self {
+            Some(en)
         } else {
             None
         }

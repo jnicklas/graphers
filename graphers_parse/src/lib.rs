@@ -30,6 +30,7 @@ pub fn parse(input: &str) -> Context {
             Definition::Query(value) => query = Some(value),
             Definition::Fragment(value) => types.push(TypeDefinition::Fragment(value)),
             Definition::Union(value) => types.push(TypeDefinition::Union(value)),
+            Definition::Enum(value) => types.push(TypeDefinition::Enum(value)),
         }
     }
 

@@ -75,6 +75,20 @@ pub enum {{name}}<T: Schema> {
 
 {{/unions}}
 
+////////////////////////////////////////////////////////////////////////////////
+// Enum
+// GraphQL enums which can return a fixed set of scalar values
+////////////////////////////////////////////////////////////////////////////////
+
+{{#enums}}
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum {{name}} {
+    {{#variants}}
+    {{name}},
+    {{/variants}}
+}
+
+{{/enums}}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PLUMBING
@@ -201,3 +215,26 @@ impl<T> Select for {{name}}<T> where T: Schema {
 }
 
 {{/unions}}
+
+{{#enums}}
+impl query::Coerce for {{name}} {
+    fn coerce(value: &query::Value) -> Self {
+        match value {
+            {{#variants}}
+            &query::Value::String(ref s) if &*s == "{{name}}" => {{enum_name}}::{{name}},
+            {{/variants}}
+            _ => panic!("cannot convert {:?} into enum {{name}}", value)
+        }
+    }
+}
+
+impl Serialize for {{name}} {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        match self {
+            {{#variants}}
+            &{{enum_name}}::{{name}} => "{{name}}".serialize(serializer),
+            {{/variants}}
+        }
+    }
+}
+{{/enums}}

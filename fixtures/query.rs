@@ -10,6 +10,7 @@ pub struct Person {
   id: String,
   first_name: String,
   last_name: String,
+  country: schema::Country,
   age: i32,
 }
 
@@ -55,6 +56,10 @@ impl schema::ResolvePerson for Person {
         self.last_name.as_str().into()
     }
 
+    fn country(&self) -> schema::Country {
+        self.country
+    }
+
     fn friend(&self) -> Option<Person> {
         None
     }
@@ -88,6 +93,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
             id: id.to_string(),
             first_name: String::from("Jonas"),
             last_name: String::from("Nicklas"),
+            country: schema::Country::SWEDEN,
             age: 30,
         }
     }
@@ -111,6 +117,18 @@ impl schema::ResolveQueryRoot for QueryRoot {
         vec![
             schema::SearchResult::Person(self.person("6543".into())),
             schema::SearchResult::Post(self.post("9876".into())),
+        ]
+    }
+
+    fn inhabitants(&self, country: schema::Country) -> Vec<Person> {
+        vec![
+            Person {
+                id: "123".to_string(),
+                first_name: String::from("Jonas"),
+                last_name: String::from("Nicklas"),
+                country: country,
+                age: 30,
+            }
         ]
     }
 }

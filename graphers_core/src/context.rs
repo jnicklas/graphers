@@ -32,6 +32,10 @@ impl Context {
         self.types.iter().filter_map(|(_name, ty)| ty.interface()).collect()
     }
 
+    pub fn unions(&self) -> Vec<&Union> {
+        self.types.iter().filter_map(|(_name, ty)| ty.union()).collect()
+    }
+
     pub fn interfaces_of(&self, object: &Object) -> Vec<&Interface> {
         object.interfaces().iter().filter_map(|i| self.resolve(i).and_then(|i| i.interface())).collect()
     }

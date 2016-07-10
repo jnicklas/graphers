@@ -44,6 +44,9 @@ fn preserialize(context: &Context, ty: &RustType) -> String {
                 Some(&TypeDefinition::Interface(_)) => {
                     format!("Selection::new(context, target, field.selection_set())")
                 }
+                Some(&TypeDefinition::Union(_)) => {
+                    format!("Selection::new(context, target, field.selection_set())")
+                }
                 other => panic!("cannot return type of kind {:?}", other),
             }
         },
@@ -91,7 +94,6 @@ impl Processor {
         builder
     }
 
-
     fn interfaces(&self, context: &Context, mut builder: mustache::VecBuilder) -> mustache::VecBuilder {
         for interface in context.interfaces() {
             builder = builder.push_map(|builder| {
@@ -119,6 +121,25 @@ impl Processor {
         }
         builder
     }
+
+    fn unions(&self, context: &Context, mut builder: mustache::VecBuilder) -> mustache::VecBuilder {
+        for union in context.unions() {
+            builder = builder.push_map(|builder| {
+                builder
+                .insert_str("name", union.name())
+                .insert_str("union_name", union.name())
+                .insert_vec("variants", |mut builder| {
+                    for variant in union.variants() {
+                        builder = builder.push_map(|builder| {
+                            builder.insert_str("name", variant)
+                        })
+                    }
+                    builder
+                })
+            });
+        }
+        builder
+    }
 }
 
 impl build::Processor for Processor {
@@ -131,6 +152,7 @@ impl build::Processor for Processor {
 
         builder = builder.insert_vec("objects", |builder| { self.objects(&context, &context.objects(), builder) });
         builder = builder.insert_vec("interfaces", |builder| { self.interfaces(&context, builder) });
+        builder = builder.insert_vec("unions", |builder| { self.unions(&context, builder) });
 
         if let Some(query) = context.schema().and_then(|s| s.query()) {
             builder = builder.insert_vec("query_root", |builder| {

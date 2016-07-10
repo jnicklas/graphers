@@ -6,6 +6,7 @@ type QueryRoot {
     person(id: Id!): Person!
     post(id: Id!): Post!
     tagged(tags: [String!]): [Taggable!]!
+    search(keyword: String!): [SearchResult!]!
 }
 
 type Person implements Taggable {
@@ -27,3 +28,5 @@ interface Taggable {
     id: Id!
     tags: [String!]!
 }
+
+union SearchResult = Post | Person

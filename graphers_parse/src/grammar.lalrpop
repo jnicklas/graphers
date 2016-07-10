@@ -154,6 +154,7 @@ FragmentName: &'input str = {
     "type" => { "type" },
     "interface" => { "interface" },
     "fragment" => { "fragment" },
+    "union" => { "union" },
     "implements" => { "implements" },
     <value:"identifier"> => { value },
 };
@@ -167,9 +168,24 @@ TypeDefinition: Definition = {
 //     ScalarTypeDefinition,
     ObjectTypeDefinition,
     InterfaceTypeDefinition,
-//     UnionTypeDefinition,
+    UnionTypeDefinition,
 //     EnumTypeDefinition,
 //     InputObjectTypeDefinition,
+};
+
+UnionTypeDefinition: Definition = {
+    "union" <name:TypeName> "=" <variants:UnionMembers> => {
+        Definition::Union(Union::new(name, variants))
+    }
+};
+
+UnionMembers: Vec<TypeName> = {
+    <name:TypeName> => { vec![name] },
+    <members:UnionMembers> "|" <name:TypeName> => {
+        let mut members = members.clone();
+        members.push(name);
+        members
+    }
 };
 
 ObjectTypeDefinition: Definition = {
@@ -212,6 +228,7 @@ extern {
         "type" => Tok::Type,
         "interface" => Tok::Interface,
         "fragment" => Tok::Fragment,
+        "union" => Tok::Union,
         "on" => Tok::On,
         "implements" => Tok::Implements,
         "identifier" => Tok::Identifier(<&'input str>),

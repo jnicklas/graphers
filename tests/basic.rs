@@ -35,7 +35,7 @@ fn test_basic_query() {
 }
 
 #[test]
-fn test_query_with_inline_fragment() {
+fn test_query_with_inline_fragment_on_interface() {
     let doc = "
         query {
             tagged(id: [\"foo\"]) {
@@ -69,7 +69,38 @@ fn test_query_with_inline_fragment() {
 }
 
 #[test]
-fn test_query_with_fragment() {
+fn test_query_with_inline_fragment_on_union() {
+    let doc = "
+        query {
+            search(keyword: \"harry\") {
+                ... on Post {
+                    id,
+                    result: title
+                }
+
+                ... on Person {
+                    id,
+                    result: first_name
+                }
+            }
+        }
+    ";
+    let context = graphers::parse(doc);
+
+    let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
+
+    let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
+
+    let results = value.find("search").expect("should have search results in output").as_array().expect("should be an array");
+
+    assert_eq!(results[0].find("id"), Some(&Value::String(String::from("6543"))));
+    assert_eq!(results[1].find("id"), Some(&Value::String(String::from("9876"))));
+    assert_eq!(results[0].find("result"), Some(&Value::String(String::from("Jonas"))));
+    assert_eq!(results[1].find("result"), Some(&Value::String(String::from("Hello GraphQL"))));
+}
+
+#[test]
+fn test_query_with_fragment_on_interface() {
     let doc = "
         query {
             tagged(id: [\"foo\"]) {

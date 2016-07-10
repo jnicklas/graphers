@@ -106,6 +106,13 @@ impl schema::ResolveQueryRoot for QueryRoot {
             Box::new(self.post("9876".into())),
         ]
     }
+
+    fn search(&self, _keyword: Cow<str>) -> Vec<schema::SearchResult<Schema>> {
+        vec![
+            schema::SearchResult::Person(self.person("6543".into())),
+            schema::SearchResult::Post(self.post("9876".into())),
+        ]
+    }
 }
 
 impl schema::HasSchema for Post {

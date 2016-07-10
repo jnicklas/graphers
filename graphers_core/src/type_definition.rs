@@ -19,6 +19,7 @@ impl TypeDefinition {
             &TypeDefinition::Object(ref object) => object.name(),
             &TypeDefinition::Interface(ref interface) => interface.name(),
             &TypeDefinition::Fragment(ref fragment) => fragment.name(),
+            &TypeDefinition::Union(ref union) => union.name(),
             _ => panic!("type name not implemented!")
         }
     }
@@ -34,6 +35,14 @@ impl TypeDefinition {
     pub fn interface(&self) -> Option<&Interface> {
         if let &TypeDefinition::Interface(ref interface) = self {
             Some(interface)
+        } else {
+            None
+        }
+    }
+
+    pub fn union(&self) -> Option<&Union> {
+        if let &TypeDefinition::Union(ref union) = self {
+            Some(union)
         } else {
             None
         }

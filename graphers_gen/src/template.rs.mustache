@@ -62,6 +62,21 @@ pub trait {{name}}: Any + HasSchema {
 {{/interfaces}}
 
 ////////////////////////////////////////////////////////////////////////////////
+// UNIONS
+// GraphQL unions which can return multiple separate types
+////////////////////////////////////////////////////////////////////////////////
+
+{{#unions}}
+pub enum {{name}}<T: Schema> {
+    {{#variants}}
+    {{name}}(T::{{name}}),
+    {{/variants}}
+}
+
+{{/unions}}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // PLUMBING
 // Everything after this line is plumbing machinery, you can ignore it
 ////////////////////////////////////////////////////////////////////////////////
@@ -170,3 +185,19 @@ impl<T> Select for Box<{{name}}<Schema=T>> where T: Schema {
 }
 
 {{/interfaces}}
+
+{{#unions}}
+
+impl<T> Select for {{name}}<T> where T: Schema {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+        match self {
+            {{#variants}}
+            &{{union_name}}::{{name}}(ref target) => {
+                Select::select(&{{name}}Ref(target), context, selection, serializer)
+            }
+            {{/variants}}
+        }
+    }
+}
+
+{{/unions}}

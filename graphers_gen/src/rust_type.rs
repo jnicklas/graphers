@@ -51,6 +51,7 @@ impl RustType {
                 match context.resolve(name) {
                     Some(&TypeDefinition::Object(ref object)) => format!("<<Self as HasSchema>::Schema as Schema>::{}", object.name()),
                     Some(&TypeDefinition::Interface(ref interface)) => format!("Box<{}<Schema=<Self as HasSchema>::Schema>>", interface.name()),
+                    Some(&TypeDefinition::Union(ref union)) => format!("{}<<Self as HasSchema>::Schema>", union.name()),
                     other => panic!("unknown type {:?}", other),
                 }
             }

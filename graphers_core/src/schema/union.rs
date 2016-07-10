@@ -1,6 +1,21 @@
-use schema::ty::Type;
+use type_name::TypeName;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Union {
-    types: Vec<Type>,
+    name: TypeName,
+    variants: Vec<TypeName>,
+}
+
+impl Union {
+    pub fn new(name: TypeName, variants: Vec<TypeName>) -> Union {
+        Union { name: name, variants: variants }
+    }
+
+    pub fn name(&self) -> &TypeName {
+        &self.name
+    }
+
+    pub fn variants(&self) -> &[TypeName] {
+        &self.variants
+    }
 }

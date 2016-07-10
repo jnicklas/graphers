@@ -29,6 +29,7 @@ pub fn parse(input: &str) -> Context {
             Definition::Schema(value) => schema = Some(value),
             Definition::Query(value) => query = Some(value),
             Definition::Fragment(value) => types.push(TypeDefinition::Fragment(value)),
+            Definition::Union(value) => types.push(TypeDefinition::Union(value)),
         }
     }
 

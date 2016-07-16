@@ -53,6 +53,7 @@ impl RustType {
                     Some(&TypeDefinition::Interface(ref interface)) => format!("Box<{}<Schema=<Self as HasSchema>::Schema>>", interface.name()),
                     Some(&TypeDefinition::Union(ref union)) => format!("{}<<Self as HasSchema>::Schema>", union.name()),
                     Some(&TypeDefinition::Enum(ref en)) => format!("{}", en.name()),
+                    Some(&TypeDefinition::InputObject(ref input)) => format!("{}", input.name()),
                     other => panic!("unknown type {:?}", other),
                 }
             }

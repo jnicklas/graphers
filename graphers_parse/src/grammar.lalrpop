@@ -158,6 +158,7 @@ FragmentName: &'input str = {
     "type" => { "type" },
     "interface" => { "interface" },
     "fragment" => { "fragment" },
+    "input" => { "input" },
     "enum" => { "enum" },
     "union" => { "union" },
     "implements" => { "implements" },
@@ -175,7 +176,7 @@ TypeDefinition: Definition = {
     InterfaceTypeDefinition,
     UnionTypeDefinition,
     EnumTypeDefinition,
-//     InputObjectTypeDefinition,
+    InputObjectTypeDefinition,
 };
 
 EnumTypeDefinition: Definition = {
@@ -196,6 +197,18 @@ UnionMembers: Vec<TypeName> = {
         let mut members = members.clone();
         members.push(name);
         members
+    }
+};
+
+InputObjectTypeDefinition: Definition = {
+    "input" <name:TypeName> "{" <fields:InputValueDefinition+> "}" => {
+        Definition::InputObject(schema::InputObject::new(name, fields))
+    }
+};
+
+InputValueDefinition: schema::InputObjectField = {
+    <name:FieldName> ":" <ty:Type> => {
+        schema::InputObjectField::new(name, ty)
     }
 };
 
@@ -239,6 +252,7 @@ extern {
         "type" => Tok::Type,
         "interface" => Tok::Interface,
         "fragment" => Tok::Fragment,
+        "input" => Tok::Input,
         "enum" => Tok::Enum,
         "union" => Tok::Union,
         "on" => Tok::On,

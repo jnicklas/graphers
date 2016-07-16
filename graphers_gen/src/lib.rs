@@ -162,6 +162,35 @@ impl Processor {
         }
         builder
     }
+
+    fn input_object(&self, context: &Context, input_object: &schema::InputObject, mut builder: mustache::MapBuilder) -> mustache::MapBuilder {
+        builder = builder
+        .insert_str("name", input_object.name())
+        .insert_str("input_object_name", input_object.name())
+        .insert_vec("fields", |mut builder| {
+            for field in input_object.fields() {
+                builder = builder.push_map(|builder| {
+                    let rust_type = RustType::from(field.ty().clone());
+                    builder
+                        .insert_str("name", field.name())
+                        .insert_str("ty", rust_type.to_rust(&context))
+                        // .insert_str("preserialize", format!("let target = {};", preserialize(&context, &rust_type)))
+                        // .insert_str("parameters", parameters(&context, &field))
+                        // .insert_str("arguments", arguments(&context, &field))
+                })
+            }
+            builder
+        });
+
+        builder
+    }
+
+    fn input_objects(&self, context: &Context, mut builder: mustache::VecBuilder) -> mustache::VecBuilder {
+        for input_object in context.input_objects() {
+            builder = builder.push_map(|builder| { self.input_object(context, &input_object, builder) })
+        }
+        builder
+    }
 }
 
 impl build::Processor for Processor {
@@ -176,6 +205,7 @@ impl build::Processor for Processor {
         builder = builder.insert_vec("interfaces", |builder| { self.interfaces(&context, builder) });
         builder = builder.insert_vec("unions", |builder| { self.unions(&context, builder) });
         builder = builder.insert_vec("enums", |builder| { self.enums(&context, builder) });
+        builder = builder.insert_vec("input_objects", |builder| { self.input_objects(&context, builder) });
 
         if let Some(query) = context.schema().and_then(|s| s.query()) {
             builder = builder.insert_vec("query_root", |builder| {

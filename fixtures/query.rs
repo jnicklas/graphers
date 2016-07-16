@@ -131,6 +131,14 @@ impl schema::ResolveQueryRoot for QueryRoot {
             }
         ]
     }
+
+    fn locate(&self, location: schema::Location) -> Option<Person> {
+        if location.lat == 12 && location.lng == 20 {
+            Some(self.person("1220".into()))
+        } else {
+            None
+        }
+    }
 }
 
 impl schema::HasSchema for Post {

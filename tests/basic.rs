@@ -154,3 +154,23 @@ fn test_enum_as_input_and_return_value() {
     assert_eq!(result[0].find("first_name"), Some(&Value::String(String::from("Jonas"))));
     assert_eq!(result[0].find("country"), Some(&Value::String(String::from("GERMANY"))));
 }
+
+#[test]
+fn test_input_objects() {
+    let doc = "
+        query {
+            hit: locate(location: { lat: 12, lng: 20 }) { id }
+            miss: locate(location: { lat: 15, lng: 21 }) { id }
+        }
+    ";
+    let context = graphers::parse(doc);
+
+    let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
+
+    let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
+
+    let hit = value.find("hit").expect("should have found someone");
+
+    assert_eq!(hit.find("id"), Some(&Value::String(String::from("1220"))));
+    assert_eq!(value.find("miss"), Some(&Value::Null))
+}

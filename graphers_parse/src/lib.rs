@@ -31,6 +31,7 @@ pub fn parse(input: &str) -> Context {
             Definition::Fragment(value) => types.push(TypeDefinition::Fragment(value)),
             Definition::Union(value) => types.push(TypeDefinition::Union(value)),
             Definition::Enum(value) => types.push(TypeDefinition::Enum(value)),
+            Definition::InputObject(value) => types.push(TypeDefinition::InputObject(value)),
         }
     }
 

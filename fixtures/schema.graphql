@@ -8,6 +8,7 @@ type QueryRoot {
     tagged(tags: [String!]): [Taggable!]!
     search(keyword: String!): [SearchResult!]!
     inhabitants(country: Country!): [Person!]!
+    locate(location: Location!): Person
 }
 
 type Person implements Taggable {
@@ -34,3 +35,8 @@ interface Taggable {
 union SearchResult = Post | Person
 
 enum Country { SWEDEN GERMANY UGANDA }
+
+input Location {
+    lat: Int!
+    lng: Int!
+}

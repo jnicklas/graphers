@@ -76,7 +76,7 @@ pub enum {{name}}<T: Schema> {
 {{/unions}}
 
 ////////////////////////////////////////////////////////////////////////////////
-// Enum
+// ENUM
 // GraphQL enums which can return a fixed set of scalar values
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -89,6 +89,21 @@ pub enum {{name}} {
 }
 
 {{/enums}}
+
+////////////////////////////////////////////////////////////////////////////////
+// INPUT OBJECTS
+// Objects which can represent structured input data
+////////////////////////////////////////////////////////////////////////////////
+
+{{#input_objects}}
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub struct {{name}} {
+    {{#fields}}
+    pub {{name}}: {{ty}},
+    {{/fields}}
+}
+
+{{/input_objects}}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PLUMBING
@@ -238,3 +253,21 @@ impl Serialize for {{name}} {
     }
 }
 {{/enums}}
+
+{{#input_objects}}
+impl query::Coerce for {{name}} {
+    fn coerce(value: &query::Value) -> Self {
+        match value {
+            &query::Value::Object(ref object) => {
+                {{name}} {
+                   {{#fields}}
+                   {{name}}: object.get(&FieldName::new("{{name}}")).expect("can't find field in input object").coerce::<{{ty}}>(),
+                   {{/fields}}
+                }
+            }
+            _ => panic!("cannot convert {:?} into input object {{name}}", value)
+        }
+    }
+}
+
+{{/input_objects}}

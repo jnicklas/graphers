@@ -161,6 +161,7 @@ FragmentName: &'input str = {
     "input" => { "input" },
     "enum" => { "enum" },
     "union" => { "union" },
+    "scalar" => { "scalar" },
     "implements" => { "implements" },
     <value:"identifier"> => { value },
 };
@@ -171,12 +172,18 @@ Name: &'input str = {
 };
 
 TypeDefinition: Definition = {
-//     ScalarTypeDefinition,
+    ScalarTypeDefinition,
     ObjectTypeDefinition,
     InterfaceTypeDefinition,
     UnionTypeDefinition,
     EnumTypeDefinition,
     InputObjectTypeDefinition,
+};
+
+ScalarTypeDefinition: Definition = {
+    "scalar" <name:TypeName> => {
+        Definition::Scalar(Scalar::new(name))
+    }
 };
 
 EnumTypeDefinition: Definition = {
@@ -255,6 +262,7 @@ extern {
         "input" => Tok::Input,
         "enum" => Tok::Enum,
         "union" => Tok::Union,
+        "scalar" => Tok::Scalar,
         "on" => Tok::On,
         "implements" => Tok::Implements,
         "identifier" => Tok::Identifier(<&'input str>),

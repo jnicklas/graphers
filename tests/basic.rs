@@ -174,3 +174,25 @@ fn test_input_objects() {
     assert_eq!(hit.find("id"), Some(&Value::String(String::from("1220"))));
     assert_eq!(value.find("miss"), Some(&Value::Null))
 }
+
+#[test]
+fn test_custom_scalars() {
+    let doc = "
+        query {
+            person: person_by_national_id(id: \"123456-9876\") {
+                id
+                national_id
+            }
+        }
+    ";
+    let context = graphers::parse(doc);
+
+    let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
+
+    let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
+
+    let hit = value.find("person").expect("should have found someone");
+
+    assert_eq!(hit.find("id"), Some(&Value::String(String::from("123"))));
+    assert_eq!(hit.find("national_id"), Some(&Value::String(String::from("123456-9876"))));
+}

@@ -1,6 +1,29 @@
+extern crate graphers_core as core;
+extern crate serde;
+
 mod schema;
 
 use std::borrow::Cow;
+
+#[derive(Debug, Clone)]
+pub struct NationalId(u32, u32);
+
+impl core::query::Coerce for NationalId {
+    fn coerce(value: &core::query::Value) -> Self {
+        match value {
+            &core::query::Value::String(ref s) => {
+                NationalId(s[0..6].parse().unwrap(), s[7..11].parse().unwrap())
+            }
+            _ => panic!("cannot convert {:?} into national id", value),
+        }
+    }
+}
+
+impl serde::Serialize for NationalId {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: serde::Serializer {
+        format!("{}-{}", self.0, self.1).serialize(serializer)
+    }
+}
 
 #[derive(Debug)]
 pub struct QueryRoot;
@@ -10,6 +33,7 @@ pub struct Person {
   id: String,
   first_name: String,
   last_name: String,
+  national_id: Option<NationalId>,
   country: schema::Country,
   age: i32,
 }
@@ -33,6 +57,7 @@ impl schema::Schema for Schema {
     type QueryRoot = QueryRoot;
     type Person = Person;
     type Post = Post;
+    type NationalId = NationalId;
 
     fn query_root(&self) -> QueryRoot {
         QueryRoot
@@ -54,6 +79,10 @@ impl schema::ResolvePerson for Person {
 
     fn last_name(&self) -> Cow<str> {
         self.last_name.as_str().into()
+    }
+
+    fn national_id(&self) -> Option<NationalId> {
+        self.national_id.clone()
     }
 
     fn country(&self) -> schema::Country {
@@ -93,6 +122,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
             id: id.to_string(),
             first_name: String::from("Jonas"),
             last_name: String::from("Nicklas"),
+            national_id: None,
             country: schema::Country::SWEDEN,
             age: 30,
         }
@@ -126,6 +156,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
                 id: "123".to_string(),
                 first_name: String::from("Jonas"),
                 last_name: String::from("Nicklas"),
+                national_id: None,
                 country: country,
                 age: 30,
             }
@@ -138,6 +169,17 @@ impl schema::ResolveQueryRoot for QueryRoot {
         } else {
             None
         }
+    }
+
+    fn person_by_national_id(&self, id: NationalId) -> Option<Person> {
+        Some(Person {
+            id: "123".to_string(),
+            national_id: Some(id.clone()),
+            first_name: String::from("Jonas"),
+            last_name: String::from("Nicklas"),
+            country: schema::Country::SWEDEN,
+            age: 30,
+        })
     }
 }
 

@@ -29,6 +29,10 @@ pub trait Schema: 'static {
     type {{name}}: Resolve{{name}};
     {{/objects}}
 
+    {{#scalars}}
+    type {{name}}: query::Coerce + Serialize;
+    {{/scalars}}
+
     {{#query_root}}
     fn query_root(&self) -> Self::{{name}};
     {{/query_root}}
@@ -123,6 +127,14 @@ impl<'a, T> Serialize for QueryResult<'a, T> where T: 'static + Resolve{{name}} 
 struct {{name}}<T>(T) where T: 'static + Resolve{{name}};
 
 struct {{name}}Ref<'a, T>(&'a T) where T: 'a + Resolve{{name}};
+
+impl<T> HasSchema for {{name}}<T> where T: 'static + Resolve{{name}} {
+    type Schema = <T as HasSchema>::Schema;
+}
+
+impl<'a, T> HasSchema for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
+    type Schema = <T as HasSchema>::Schema;
+}
 
 impl<T> Select for {{name}}<T> where T: Resolve{{name}} {
     fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {

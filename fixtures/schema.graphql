@@ -9,12 +9,14 @@ type QueryRoot {
     search(keyword: String!): [SearchResult!]!
     inhabitants(country: Country!): [Person!]!
     locate(location: Location!): Person
+    person_by_national_id(id: NationalId!): Person
 }
 
 type Person implements Taggable {
     id: Id!
     first_name: String!
     last_name: String!
+    national_id: NationalId
     country: Country!
     friend: Person
     age: Int!
@@ -40,3 +42,5 @@ input Location {
     lat: Int!
     lng: Int!
 }
+
+scalar NationalId

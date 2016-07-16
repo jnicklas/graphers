@@ -9,6 +9,7 @@ mod object;
 mod field;
 mod interface;
 mod ty;
+mod scalar;
 
 pub use schema::ty::Type;
 pub use schema::argument::Argument;
@@ -21,3 +22,4 @@ pub use schema::enums::Enum;
 pub use schema::enum_variant::EnumVariant;
 pub use schema::input_object::InputObject;
 pub use schema::input_object_field::InputObjectField;
+pub use schema::scalar::Scalar;

@@ -1,10 +1,10 @@
 use type_name::TypeName;
-use schema::{Object, Interface, Union, Enum, InputObject};
+use schema::{Object, Interface, Union, Enum, InputObject, Scalar};
 use query::Fragment;
 
 #[derive(Debug)]
 pub enum TypeDefinition {
-    Scalar(TypeName),
+    Scalar(Scalar),
     Object(Object),
     Interface(Interface),
     Union(Union),
@@ -16,13 +16,13 @@ pub enum TypeDefinition {
 impl TypeDefinition {
     pub fn name(&self) -> &TypeName {
         match self {
+            &TypeDefinition::Scalar(ref scalar) => scalar.name(),
             &TypeDefinition::Object(ref object) => object.name(),
             &TypeDefinition::Interface(ref interface) => interface.name(),
             &TypeDefinition::Fragment(ref fragment) => fragment.name(),
             &TypeDefinition::Union(ref union) => union.name(),
             &TypeDefinition::Enum(ref en) => en.name(),
             &TypeDefinition::InputObject(ref input) => input.name(),
-            _ => panic!("type name not implemented!")
         }
     }
 
@@ -69,6 +69,14 @@ impl TypeDefinition {
     pub fn input_object(&self) -> Option<&InputObject> {
         if let &TypeDefinition::InputObject(ref input_object) = self {
             Some(input_object)
+        } else {
+            None
+        }
+    }
+
+    pub fn scalar(&self) -> Option<&Scalar> {
+        if let &TypeDefinition::Scalar(ref scalar) = self {
+            Some(scalar)
         } else {
             None
         }

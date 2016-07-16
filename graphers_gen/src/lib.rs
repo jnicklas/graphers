@@ -50,6 +50,9 @@ fn preserialize(context: &Context, ty: &RustType) -> String {
                 Some(&TypeDefinition::Enum(_)) => {
                     format!("target")
                 }
+                Some(&TypeDefinition::Scalar(_)) => {
+                    format!("target")
+                }
                 other => panic!("cannot return type of kind {:?}", other),
             }
         },
@@ -191,6 +194,16 @@ impl Processor {
         }
         builder
     }
+
+    fn scalars(&self, context: &Context, mut builder: mustache::VecBuilder) -> mustache::VecBuilder {
+        for union in context.scalars() {
+            builder = builder.push_map(|builder| {
+                builder
+                .insert_str("name", union.name())
+            });
+        }
+        builder
+    }
 }
 
 impl build::Processor for Processor {
@@ -206,6 +219,7 @@ impl build::Processor for Processor {
         builder = builder.insert_vec("unions", |builder| { self.unions(&context, builder) });
         builder = builder.insert_vec("enums", |builder| { self.enums(&context, builder) });
         builder = builder.insert_vec("input_objects", |builder| { self.input_objects(&context, builder) });
+        builder = builder.insert_vec("scalars", |builder| { self.scalars(&context, builder) });
 
         if let Some(query) = context.schema().and_then(|s| s.query()) {
             builder = builder.insert_vec("query_root", |builder| {

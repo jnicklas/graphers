@@ -1,6 +1,6 @@
 use query::Selection;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Query {
     selection_set: Vec<Selection>
 }

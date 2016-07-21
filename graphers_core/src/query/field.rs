@@ -1,7 +1,7 @@
 use field_name::FieldName;
 use query::{Selection, Argument, Value};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Field {
     name: FieldName,
     alias: Option<FieldName>,

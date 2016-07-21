@@ -1,7 +1,7 @@
 use schema::enum_variant::EnumVariant;
 use type_name::TypeName;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Enum {
     name: TypeName,
     variants: Vec<EnumVariant>,

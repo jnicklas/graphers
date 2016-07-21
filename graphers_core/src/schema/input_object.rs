@@ -1,7 +1,7 @@
 use type_name::TypeName;
 use schema::InputObjectField;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct InputObject {
     name: TypeName,
     fields: Vec<InputObjectField>,

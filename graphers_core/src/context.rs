@@ -1,6 +1,7 @@
 use super::*;
 use schema::*;
 
+#[derive(Debug, Clone)]
 pub struct Context {
     types: Vec<TypeDefinition>,
     schema: Option<Schema>,

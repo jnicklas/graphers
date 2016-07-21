@@ -1,7 +1,7 @@
 use type_name::TypeName;
 use schema::Field;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Clone, Eq)]
 pub struct Interface {
     name: TypeName,
     fields: Vec<Field>,

@@ -1,7 +1,7 @@
 use type_name::TypeName;
 use query::Selection;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Fragment {
     name: TypeName,
     on: TypeName,

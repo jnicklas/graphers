@@ -1,6 +1,6 @@
 use type_name::TypeName;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Scalar {
     name: TypeName,
 }

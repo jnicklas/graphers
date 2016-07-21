@@ -1,7 +1,7 @@
 use type_name::TypeName;
 use query::{Field, InlineFragment};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Selection {
     Field(Field),
     FragmentSpread(TypeName),

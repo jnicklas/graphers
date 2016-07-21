@@ -1,7 +1,7 @@
 use field_name::FieldName;
 use query::value::Value;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Argument {
     name: FieldName,
     value: Value,

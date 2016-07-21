@@ -2,7 +2,7 @@ use type_name::TypeName;
 use schema::{Object, Interface, Union, Enum, InputObject, Scalar};
 use query::Fragment;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TypeDefinition {
     Scalar(Scalar),
     Object(Object),

@@ -14,4 +14,8 @@ impl Schema {
     pub fn query(&self) -> Option<&TypeName> {
         self.query.as_ref()
     }
+
+    pub fn mutation(&self) -> Option<&TypeName> {
+        self.mutation.as_ref()
+    }
 }

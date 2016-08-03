@@ -3,6 +3,7 @@ extern crate serde;
 
 mod schema;
 
+pub use self::schema::reflect;
 use std::borrow::Cow;
 
 #[derive(Debug, Clone)]

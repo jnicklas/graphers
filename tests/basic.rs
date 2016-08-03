@@ -196,3 +196,12 @@ fn test_custom_scalars() {
     assert_eq!(hit.find("id"), Some(&Value::String(String::from("123"))));
     assert_eq!(hit.find("national_id"), Some(&Value::String(String::from("123456-9876"))));
 }
+
+#[test]
+fn test_direct_schema_introspection() {
+    let context = query::reflect();
+    let schema = context.schema().expect("should contain schema");
+    let person_type = context.resolve_object(&graphers::TypeName::new("Person")).expect("should contain person type");
+    assert_eq!(schema.query(), Some(&graphers::TypeName::new("QueryRoot")));
+    assert_eq!(person_type.fields()[1].name(), &graphers::FieldName::new("first_name"));
+}

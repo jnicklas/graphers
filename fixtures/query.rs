@@ -5,6 +5,7 @@ mod schema;
 
 pub use self::schema::reflect;
 pub use self::schema::Country;
+pub use self::schema::Location;
 use std::borrow::Cow;
 
 #[derive(Debug, Clone)]
@@ -165,7 +166,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
         ]
     }
 
-    fn locate(&self, location: schema::Location) -> Option<Person> {
+    fn locate(&self, location: Location) -> Option<Person> {
         if location.lat == 12 && location.lng == 20 {
             Some(self.person("1220".into()))
         } else {

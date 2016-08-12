@@ -9,10 +9,10 @@ use std::borrow::Cow;
 #[derive(Debug, Clone)]
 pub struct NationalId(u32, u32);
 
-impl core::query::Coerce for NationalId {
-    fn coerce(value: &core::query::Value) -> Self {
+impl core::Coerce for NationalId {
+    fn coerce(value: &core::Value) -> Self {
         match value {
-            &core::query::Value::String(ref s) => {
+            &core::Value::String(ref s) => {
                 NationalId(s[0..6].parse().unwrap(), s[7..11].parse().unwrap())
             }
             _ => panic!("cannot convert {:?} into national id", value),

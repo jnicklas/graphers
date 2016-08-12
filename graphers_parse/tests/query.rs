@@ -1,8 +1,7 @@
 extern crate graphers_core as core;
 extern crate graphers_parse as parse;
 
-use core::query::Value;
-use core::FieldName;
+use core::{Value, FieldName};
 
 #[test]
 fn test_basic_query() {

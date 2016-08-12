@@ -1,5 +1,6 @@
 use field_name::FieldName;
-use query::{Selection, Argument, Value};
+use query::{Selection, Argument};
+use value::Value;
 
 #[derive(Debug, Clone)]
 pub struct Field {

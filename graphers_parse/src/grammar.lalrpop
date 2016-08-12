@@ -59,27 +59,27 @@ Alias: FieldName = {
     <alias:FieldName> ":" => alias
 };
 
-Value: query::Value = {
-    <value:"String"> => query::Value::String(value.into()),
+Value: Value = {
+    <value:"String"> => Value::String(value.into()),
     // ConstVariable
-    <value:"IntValue"> => query::Value::Int(value),
-    <value:"FloatValue"> => query::Value::Float(value),
-    <value:"true"> => query::Value::Boolean(true),
-    <value:"false"> => query::Value::Boolean(false),
-    <value:EnumVariant> => query::Value::String(value.as_str().into()),
-    <list:ListValue> => query::Value::List(list),
-    <object:ObjectValue> => query::Value::Object(object),
+    <value:"IntValue"> => Value::Int(value),
+    <value:"FloatValue"> => Value::Float(value),
+    <value:"true"> => Value::Boolean(true),
+    <value:"false"> => Value::Boolean(false),
+    <value:EnumVariant> => Value::String(value.as_str().into()),
+    <list:ListValue> => Value::List(list),
+    <object:ObjectValue> => Value::Object(object),
 };
 
-ListValue: Vec<query::Value> = {
+ListValue: Vec<Value> = {
     "[" <(Value)*> "]"
 };
 
-ObjectValue: BTreeMap<FieldName, query::Value> = {
+ObjectValue: BTreeMap<FieldName, Value> = {
     "{" <items:(ObjectValueItem)*> "}" => { items.into_iter().collect() }
 };
 
-ObjectValueItem: (FieldName, query::Value) = {
+ObjectValueItem: (FieldName, Value) = {
     <name:FieldName> ":" <value:Value> => { (name, value) }
 };
 

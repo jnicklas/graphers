@@ -1,23 +1,5 @@
-use std::collections::BTreeMap;
-use field_name::FieldName;
 use std::borrow::Cow;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Value {
-    Int(i32),
-    Float(f32),
-    String(String),
-    Boolean(bool),
-    Id(String),
-    Object(BTreeMap<FieldName, Value>),
-    List(Vec<Value>),
-}
-
-impl Value {
-    pub fn coerce<T>(&self) -> T where T: Coerce {
-        Coerce::coerce(self)
-    }
-}
+use value::Value;
 
 pub trait Coerce {
     fn coerce(value: &Value) -> Self;

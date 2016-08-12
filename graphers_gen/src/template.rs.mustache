@@ -39,7 +39,7 @@ pub trait Schema: 'static {
     {{/objects}}
 
     {{#scalars}}
-    type {{name}}: query::Coerce + Serialize;
+    type {{name}}: Coerce + Serialize;
     {{/scalars}}
 
     {{#query_root}}
@@ -263,11 +263,11 @@ impl<T> Select for {{name}}<T> where T: Schema {
 {{/unions}}
 
 {{#enums}}
-impl query::Coerce for {{name}} {
-    fn coerce(value: &query::Value) -> Self {
+impl Coerce for {{name}} {
+    fn coerce(value: &Value) -> Self {
         match value {
             {{#variants}}
-            &query::Value::String(ref s) if &*s == "{{name}}" => {{enum_name}}::{{name}},
+            &Value::String(ref s) if &*s == "{{name}}" => {{enum_name}}::{{name}},
             {{/variants}}
             _ => panic!("cannot convert {:?} into enum {{name}}", value)
         }
@@ -286,10 +286,10 @@ impl Serialize for {{name}} {
 {{/enums}}
 
 {{#input_objects}}
-impl query::Coerce for {{name}} {
-    fn coerce(value: &query::Value) -> Self {
+impl Coerce for {{name}} {
+    fn coerce(value: &Value) -> Self {
         match value {
-            &query::Value::Object(ref object) => {
+            &Value::Object(ref object) => {
                 {{name}} {
                    {{#fields}}
                    {{name}}: object.get(&FieldName::new("{{name}}")).expect("can't find field in input object").coerce::<{{ty}}>(),

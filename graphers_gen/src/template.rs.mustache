@@ -170,6 +170,9 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
                         let target = Selection::new(&schema_context, definition, field.selection_set());
                         Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
                     },
+                    "__typename" => {
+                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), "{{object_name}}"))))
+                    },
                     name => panic!("unknown field {}", name),
                 }
             },

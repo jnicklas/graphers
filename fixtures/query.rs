@@ -4,6 +4,7 @@ extern crate serde;
 mod schema;
 
 pub use self::schema::reflect;
+pub use self::schema::Country;
 use std::borrow::Cow;
 
 #[derive(Debug, Clone)]
@@ -35,7 +36,7 @@ pub struct Person {
   first_name: String,
   last_name: String,
   national_id: Option<NationalId>,
-  country: schema::Country,
+  country: Country,
   age: i32,
 }
 
@@ -86,7 +87,7 @@ impl schema::ResolvePerson for Person {
         self.national_id.clone()
     }
 
-    fn country(&self) -> schema::Country {
+    fn country(&self) -> Country {
         self.country
     }
 
@@ -124,7 +125,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
             first_name: String::from("Jonas"),
             last_name: String::from("Nicklas"),
             national_id: None,
-            country: schema::Country::SWEDEN,
+            country: Country::SWEDEN,
             age: 30,
         }
     }
@@ -151,7 +152,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
         ]
     }
 
-    fn inhabitants(&self, country: schema::Country) -> Vec<Person> {
+    fn inhabitants(&self, country: Country) -> Vec<Person> {
         vec![
             Person {
                 id: "123".to_string(),
@@ -178,7 +179,7 @@ impl schema::ResolveQueryRoot for QueryRoot {
             national_id: Some(id.clone()),
             first_name: String::from("Jonas"),
             last_name: String::from("Nicklas"),
-            country: schema::Country::SWEDEN,
+            country: Country::SWEDEN,
             age: 30,
         })
     }

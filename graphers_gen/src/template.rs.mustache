@@ -269,7 +269,7 @@ impl Coerce for {{name}} {
             {{#variants}}
             &Value::String(ref s) if &*s == "{{name}}" => Ok({{enum_name}}::{{name}}),
             {{/variants}}
-            _ => panic!("cannot convert {:?} into enum {{name}}", value)
+            _ => Err(value::CoerceError::new(value, "Enum {{name}}"))
         }
     }
 }
@@ -296,7 +296,7 @@ impl Coerce for {{name}} {
                    {{/fields}}
                 })
             }
-            _ => panic!("cannot convert {:?} into input object {{name}}", value)
+            _ => Err(value::CoerceError::new(value, "InputObject {{name}}"))
         }
     }
 }

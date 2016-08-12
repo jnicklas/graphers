@@ -165,7 +165,7 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
                     {{/fields}}
                     "__type" => {
                         let schema_context = reflect();
-                        let name: Cow<str> = field.require(&FieldName::new("name")).coerce();
+                        let name: Cow<str> = field.require(&FieldName::new("name")).coerce().unwrap();
                         let definition = schema_context.resolve(&TypeName::new(name.to_string())).expect("cannot query for non existing types yet");
                         let target = Selection::new(&schema_context, definition, field.selection_set());
                         Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
@@ -264,10 +264,10 @@ impl<T> Select for {{name}}<T> where T: Schema {
 
 {{#enums}}
 impl Coerce for {{name}} {
-    fn coerce(value: &Value) -> Self {
+    fn coerce(value: &Value) -> value::CoerceResult<Self> {
         match value {
             {{#variants}}
-            &Value::String(ref s) if &*s == "{{name}}" => {{enum_name}}::{{name}},
+            &Value::String(ref s) if &*s == "{{name}}" => Ok({{enum_name}}::{{name}}),
             {{/variants}}
             _ => panic!("cannot convert {:?} into enum {{name}}", value)
         }
@@ -287,14 +287,14 @@ impl Serialize for {{name}} {
 
 {{#input_objects}}
 impl Coerce for {{name}} {
-    fn coerce(value: &Value) -> Self {
+    fn coerce(value: &Value) -> value::CoerceResult<Self> {
         match value {
             &Value::Object(ref object) => {
-                {{name}} {
+                Ok({{name}} {
                    {{#fields}}
-                   {{name}}: object.get(&FieldName::new("{{name}}")).expect("can't find field in input object").coerce::<{{ty}}>(),
+                   {{name}}: try!(object.get(&FieldName::new("{{name}}")).expect("can't find field in input object").coerce::<{{ty}}>()),
                    {{/fields}}
-                }
+                })
             }
             _ => panic!("cannot convert {:?} into input object {{name}}", value)
         }

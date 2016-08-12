@@ -10,10 +10,10 @@ use std::borrow::Cow;
 pub struct NationalId(u32, u32);
 
 impl core::Coerce for NationalId {
-    fn coerce(value: &core::Value) -> Self {
+    fn coerce(value: &core::Value) -> core::value::CoerceResult<Self> {
         match value {
             &core::Value::String(ref s) => {
-                NationalId(s[0..6].parse().unwrap(), s[7..11].parse().unwrap())
+                Ok(NationalId(s[0..6].parse().unwrap(), s[7..11].parse().unwrap()))
             }
             _ => panic!("cannot convert {:?} into national id", value),
         }

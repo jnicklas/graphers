@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use field_name::FieldName;
 use value::coerce::Coerce;
+use value::coerce::Result as CoerceResult;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -14,7 +15,7 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn coerce<T>(&self) -> T where T: Coerce {
+    pub fn coerce<T>(&self) -> CoerceResult<T> where T: Coerce {
         Coerce::coerce(self)
     }
 }

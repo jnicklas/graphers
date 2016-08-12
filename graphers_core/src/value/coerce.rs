@@ -1,32 +1,117 @@
 use std::borrow::Cow;
 use value::Value;
+use std::fmt;
 
-pub trait Coerce {
-    fn coerce(value: &Value) -> Self;
+pub type Result<'a, T> = ::std::result::Result<T, Error<'a>>;
+
+pub trait Coerce: Sized {
+    fn coerce(value: &Value) -> Result<Self>;
 }
 
 impl<'a> Coerce for Cow<'a, str> {
-    fn coerce(value: &Value) -> Self {
+    fn coerce(value: &Value) -> Result<Self> {
         match value {
-            &Value::String(ref s) => s.clone().into(),
-            _ => panic!("cannot convert {:?} into string", value),
+            &Value::String(ref s) => Ok(s.clone().into()),
+            _ => Err(Error { value: value, coerce_to: "String" }),
         }
     }
 }
 
-impl<'a> Coerce for i32 {
-    fn coerce(value: &Value) -> Self {
+impl Coerce for i32 {
+    fn coerce(value: &Value) -> Result<Self> {
         match value {
-            &Value::Int(v) => v,
-            _ => panic!("cannot convert {:?} into int", value),
+            &Value::Int(v) => Ok(v),
+            _ => Err(Error { value: value, coerce_to: "Int" }),
         }
     }
 }
 
-impl<'a, T> Coerce for Option<T> {
-    fn coerce(value: &Value) -> Self {
+impl Coerce for f32 {
+    fn coerce(value: &Value) -> Result<Self> {
         match value {
-            _ => panic!("cannot convert {:?} into option", value),
+            &Value::Int(v) => Ok(v as f32),
+            &Value::Float(v) => Ok(v),
+            _ => Err(Error { value: value, coerce_to: "Float" }),
         }
     }
+}
+
+impl<T> Coerce for Option<T> where T: Coerce {
+    fn coerce(value: &Value) -> Result<Self> {
+        Ok(Some(try!(value.coerce())))
+    }
+}
+
+impl<T> Coerce for Vec<T> where T: Coerce {
+    fn coerce(value: &Value) -> Result<Self> {
+        match value {
+            &Value::List(ref values) => values.iter().map(|v| v.coerce()).collect(),
+            other => Ok(vec![try!(other.coerce())])
+        }
+
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Error<'a> {
+    value: &'a Value,
+    coerce_to: &'static str
+}
+
+impl<'a> Error<'a> {
+    pub fn new(value: &'a Value, coerce_to: &'static str) -> Self {
+        Error {
+            value: value,
+            coerce_to: coerce_to,
+        }
+    }
+
+}
+
+impl<'a> fmt::Display for Error<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "cannot coerce the value {:?} to {}", self.value, self.coerce_to)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use value::{Value, Coerce};
+    use std::borrow::Cow;
+
+    #[test]
+    fn coerce_string() {
+        assert_eq!(Value::String("123".into()).coerce::<Cow<str>>(), Ok(Cow::Owned(String::from("123"))));
+        assert_eq!(format!("{}", Value::Float(12.5).coerce::<Cow<str>>().unwrap_err()), "cannot coerce the value Float(12.5) to String");
+        assert_eq!(format!("{}", Value::Boolean(true).coerce::<Cow<str>>().unwrap_err()), "cannot coerce the value Boolean(true) to String");
+    }
+
+    #[test]
+    fn coerce_int() {
+        assert_eq!(Value::Int(123).coerce::<i32>(), Ok(123));
+        assert_eq!(format!("{}", Value::Float(12.5).coerce::<i32>().unwrap_err()), "cannot coerce the value Float(12.5) to Int");
+        assert_eq!(format!("{}", Value::Boolean(true).coerce::<i32>().unwrap_err()), "cannot coerce the value Boolean(true) to Int");
+        assert_eq!(format!("{}", Value::String("123".into()).coerce::<i32>().unwrap_err()), "cannot coerce the value String(\"123\") to Int");
+    }
+
+    #[test]
+    fn coerce_float() {
+        assert_eq!(Value::Int(123).coerce::<f32>(), Ok(123.0));
+        assert_eq!(Value::Float(12.5).coerce::<f32>(), Ok(12.5));
+        assert_eq!(format!("{}", Value::Boolean(true).coerce::<f32>().unwrap_err()), "cannot coerce the value Boolean(true) to Float");
+        assert_eq!(format!("{}", Value::String("123".into()).coerce::<f32>().unwrap_err()), "cannot coerce the value String(\"123\") to Float");
+    }
+
+    #[test]
+    fn coerce_list() {
+        assert_eq!(Value::List(vec![Value::Int(123), Value::Int(56)]).coerce::<Vec<i32>>(), Ok(vec![123, 56]));
+        assert_eq!(Value::Int(123).coerce::<Vec<i32>>(), Ok(vec![123]));
+        assert_eq!(format!("{}", Value::List(vec![Value::Int(123), Value::Boolean(true)]).coerce::<Vec<i32>>().unwrap_err()), "cannot coerce the value Boolean(true) to Int");
+    }
+
+    #[test]
+    fn coerce_option() {
+        assert_eq!(Value::Int(123).coerce::<Option<i32>>(), Ok(Some(123)))
+    }
+
 }

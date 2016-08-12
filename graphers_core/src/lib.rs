@@ -2,7 +2,7 @@ mod type_name;
 mod type_definition;
 mod field_name;
 mod context;
-mod value;
+pub mod value;
 pub mod schema;
 pub mod query;
 

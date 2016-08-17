@@ -292,7 +292,10 @@ impl Coerce for {{name}} {
             &Value::Object(ref object) => {
                 Ok({{name}} {
                    {{#fields}}
-                   {{name}}: try!(object.get(&FieldName::new("{{name}}")).expect("can't find field in input object").coerce::<{{ty}}>()),
+                   {{name}}: match object.get(&FieldName::new("{{name}}")) {
+                       Some(value) => try!(value.coerce::<{{ty}}>()),
+                       None => return Err(value::CoerceError::new(value, "InputObject {{input_object_name}}"))
+                   },
                    {{/fields}}
                 })
             }

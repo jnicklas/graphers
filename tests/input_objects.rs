@@ -23,6 +23,34 @@ fn enum_input_object_valid_coercion() {
 }
 
 #[test]
+fn enum_input_object_coercion_wrong_type() {
+    let value = graphers::Value::Int(123);
+
+    assert_eq!(format!("{}", value.coerce::<query::Location>().unwrap_err()), "cannot coerce the value Int(123) to InputObject Location");
+}
+
+#[test]
+fn enum_input_object_coercion_wrong_field_type() {
+    let mut map = BTreeMap::new();
+    map.insert(FieldName::new("lat"), graphers::Value::Boolean(true));
+    map.insert(FieldName::new("lng"), graphers::Value::Int(20));
+
+    let value = graphers::Value::Object(map);
+
+    assert_eq!(format!("{}", value.coerce::<query::Location>().unwrap_err()), "cannot coerce the value Boolean(true) to Int");
+}
+
+#[test]
+fn enum_input_object_coercion_missing_field() {
+    let mut map = BTreeMap::new();
+    map.insert(FieldName::new("lat"), graphers::Value::Int(12));
+
+    let value = graphers::Value::Object(map);
+
+    assert_eq!(format!("{}", value.coerce::<query::Location>().unwrap_err()), format!("cannot coerce the value {:?} to InputObject Location", value));
+}
+
+#[test]
 fn test_input_object_query() {
     let doc = "
         query {

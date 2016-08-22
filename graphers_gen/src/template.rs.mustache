@@ -166,8 +166,9 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
                     "__type" => {
                         let schema_context = reflect();
                         let name: Cow<str> = field.require(&FieldName::new("name")).coerce().unwrap();
-                        let definition = schema_context.resolve(&TypeName::new(name.to_string())).expect("cannot query for non existing types yet");
-                        let target = Selection::new(&schema_context, definition, field.selection_set());
+                        let target = schema_context.resolve(&TypeName::new(name.to_string())).map(|definition| {
+                            Selection::new(&schema_context, definition, field.selection_set())
+                        });
                         Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
                     },
                     "__typename" => {

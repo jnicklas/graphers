@@ -79,3 +79,19 @@ fn test_reflect_on_type_by_name() {
     assert_eq!(name_field.pointer("/type/name"), Some(&Value::String(String::from("NonNull"))));
     assert_eq!(name_field.pointer("/type/ofType/name"), Some(&Value::String(String::from("String"))));
 }
+
+#[test]
+fn test_reflect_on_non_existent_type() {
+    let doc = "
+        query {
+            __type(name: \"DoesNotExist\") { name }
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
+
+    let value: Value = serde_json::from_str(&result).expect("should generate valid JSON");
+
+    assert_eq!(value.find("__type"), Some(&Value::Null));
+}

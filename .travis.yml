@@ -1,0 +1,6 @@
+language: rust
+rust:
+  - stable
+  - beta
+  - nightly
+script: find . -name Cargo.toml | while read line; do cargo test --manifest-path $line; done

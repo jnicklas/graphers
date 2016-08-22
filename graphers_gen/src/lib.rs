@@ -210,29 +210,34 @@ impl Processor {
 
 impl build::Processor for Processor {
     fn process<O: Write>(&self, input: build::FileText, output: &mut O) -> Result<(), build::Error> {
-        let context = parse::parse(input.text());
+        let (message, (from, to)) = match parse::parse(input.text()) {
+            Ok(context) => {
+                let template = mustache::compile_str(TEMPLATE);
 
-        let template = mustache::compile_str(TEMPLATE);
+                let mut builder = mustache::MapBuilder::new();
 
-        let mut builder = mustache::MapBuilder::new();
+                builder = builder.insert_vec("objects", |builder| { self.objects(&context, &context.objects(), builder) });
+                builder = builder.insert_vec("interfaces", |builder| { self.interfaces(&context, builder) });
+                builder = builder.insert_vec("unions", |builder| { self.unions(&context, builder) });
+                builder = builder.insert_vec("enums", |builder| { self.enums(&context, builder) });
+                builder = builder.insert_vec("input_objects", |builder| { self.input_objects(&context, builder) });
+                builder = builder.insert_vec("scalars", |builder| { self.scalars(&context, builder) });
+                builder = builder.insert_str("introspect", context.to_rust());
 
-        builder = builder.insert_vec("objects", |builder| { self.objects(&context, &context.objects(), builder) });
-        builder = builder.insert_vec("interfaces", |builder| { self.interfaces(&context, builder) });
-        builder = builder.insert_vec("unions", |builder| { self.unions(&context, builder) });
-        builder = builder.insert_vec("enums", |builder| { self.enums(&context, builder) });
-        builder = builder.insert_vec("input_objects", |builder| { self.input_objects(&context, builder) });
-        builder = builder.insert_vec("scalars", |builder| { self.scalars(&context, builder) });
-        builder = builder.insert_str("introspect", context.to_rust());
+                if let Some(query) = context.schema().and_then(|s| s.query()) {
+                    builder = builder.insert_vec("query_root", |builder| {
+                        builder.push_map(|builder| builder.insert_str("name", &query))
+                    });
+                }
 
-        if let Some(query) = context.schema().and_then(|s| s.query()) {
-            builder = builder.insert_vec("query_root", |builder| {
-                builder.push_map(|builder| builder.insert_str("name", &query))
-            });
-        }
+                template.render_data(output, &builder.build());
 
-        template.render_data(output, &builder.build());
-
-        Ok(())
+                return Ok(());
+            }
+            Err(err) => { (format!("{}", err), err.span().unwrap_or((0, 0))) }
+        };
+        // Work around lexical borrowing restrictions
+        Err(build::Error::Source(input, message, build::Span(from, to)))
     }
 }
 

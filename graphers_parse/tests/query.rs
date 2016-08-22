@@ -12,7 +12,7 @@ fn test_basic_query() {
                 zuck: friend(name: \"Mark Zuckerberg\")
             }
         }
-    ");
+    ").expect("should be valid");
 
     let query = context.query().expect("there should be a query");
 

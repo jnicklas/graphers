@@ -24,7 +24,7 @@ fn test_enum_as_input_and_return_value() {
             inhabitants(country: GERMANY) { id, first_name, country }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 

@@ -24,7 +24,7 @@ fn main() {
             }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string_pretty(&Schema.query(&context)).expect("failed to serialize");
 

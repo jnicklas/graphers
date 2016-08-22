@@ -11,7 +11,7 @@ type QueryRoot {
 ";
 
 fn main() {
-    let context = graphers::parse(DOCUMENT);
+    let context = graphers::parse(DOCUMENT).expect("should be valid");
 
     let schema = context.schema().expect("there should be a schema");
     let query_root = schema.query().expect("there should be a query");

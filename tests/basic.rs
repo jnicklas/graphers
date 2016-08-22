@@ -20,7 +20,7 @@ fn test_basic_query() {
             }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 
@@ -52,7 +52,7 @@ fn test_query_with_inline_fragment_on_interface() {
             }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 
@@ -85,7 +85,7 @@ fn test_query_with_inline_fragment_on_union() {
             }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 
@@ -119,7 +119,7 @@ fn test_query_with_fragment_on_interface() {
             title
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 
@@ -145,7 +145,7 @@ fn test_custom_scalars() {
             }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 

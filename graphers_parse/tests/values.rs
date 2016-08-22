@@ -4,7 +4,7 @@ extern crate graphers_parse as parse;
 use core::{Value, FieldName};
 
 fn get_first_arg<'query>(input: &'query str) -> Value {
-    let context = parse::parse(input);
+    let context = parse::parse(input).expect("should be valid");
     let query = context.query().expect("there should be a query");
     let selection = query.selection_set().get(0).expect("must have a first selection");
     let field = selection.field().expect("selection should be a field");

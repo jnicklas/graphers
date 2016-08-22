@@ -14,7 +14,7 @@ fn test_basic_schema() {
         type QueryRoot {
             first_name: String
         }
-    ");
+    ").expect("should be valid");
 
     let schema = context.schema().expect("must have schema");
     let query_root = schema.query().expect("there should be a query");
@@ -40,7 +40,7 @@ fn test_field_arguments() {
         type Person {
             tags(smart: Boolean): [String!]
         }
-    ");
+    ").expect("should be valid");
 
     let schema = context.schema().expect("must have schema");
     let query_root = schema.query().expect("there should be a query");

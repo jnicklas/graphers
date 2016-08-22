@@ -76,7 +76,7 @@ impl<'a> fmt::Display for Error<'a> {
 
 #[cfg(test)]
 mod test {
-    use value::{Value, Coerce};
+    use value::Value;
     use std::borrow::Cow;
 
     #[test]

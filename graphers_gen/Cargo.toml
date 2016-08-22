@@ -4,7 +4,7 @@ name = "graphers_gen"
 version = "0.1.0"
 
 [dependencies]
-build_compile = "0.1.0"
+build_compile = "0.2.0"
 mustache = "0.7.0"
 
 [dependencies.graphers_core]

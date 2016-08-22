@@ -58,7 +58,7 @@ fn test_input_object_query() {
             miss: locate(location: { lat: 15, lng: 21 }) { id }
         }
     ";
-    let context = graphers::parse(doc);
+    let context = graphers::parse(doc).expect("should be valid");
 
     let result = serde_json::to_string(&Schema.query(&context)).expect("failed to serialize");
 

@@ -14,7 +14,7 @@ fn handler(request: &mut Request) -> IronResult<Response> {
     let mut buf = String::new();
     request.body.read_to_string(&mut buf).expect("unable to read response");
 
-    let context = graphers::parse(&buf);
+    let context = graphers::parse(&buf).expect("should be valid");
 
     let result = serde_json::to_string_pretty(&Schema.query(&context)).expect("failed to serialize");
 

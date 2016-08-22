@@ -2,21 +2,26 @@ mod grammar;
 mod document;
 mod definition;
 mod tok;
+mod error;
 
 extern crate graphers_core as core;
+extern crate lalrpop_util;
 
 pub use document::Document;
 pub use definition::Definition;
+pub use error::Error;
 
 use core::{Context, TypeDefinition};
+
+pub type Result<'input> = ::std::result::Result<Context, Error<'input>>;
 
 #[derive(Clone, Copy, Debug)]
 pub enum OperationType { Query, Mutation }
 
-pub fn parse(input: &str) -> Context {
+pub fn parse(input: &str) -> Result {
     let tokenizer = tok::Tokenizer::new(input, 0);
 
-    let document = grammar::parse_Document(input, tokenizer).expect("failed to parse input");
+    let document = try!(grammar::parse_Document(input, tokenizer));
 
     let mut schema = None;
     let mut query = None;
@@ -36,5 +41,5 @@ pub fn parse(input: &str) -> Context {
         }
     }
 
-    Context::new(schema, query, types)
+    Ok(Context::new(schema, query, types))
 }

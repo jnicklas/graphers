@@ -1,5 +1,7 @@
 # Graphers
 
+[![Build Status](https://travis-ci.org/jnicklas/graphers.svg?branch=master)](https://travis-ci.org/jnicklas/graphers)
+
 Graphers is a GraphQL implementation written in Rust.
 
 Graphers generates Rust code from the proposed GraphQL IDL. Define a Schema

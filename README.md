@@ -4,8 +4,8 @@
 
 Graphers is a GraphQL implementation written in Rust.
 
-Graphers generates Rust code from the proposed GraphQL IDL. Define a Schema
-via the IDL, then implement the traits that Graphers generate to create a
+Graphers generates Rust code from the proposed GraphQL IDL. Define a schema
+via the IDL, then implement the traits that Graphers generates to create a
 complete, compliant GraphQL interface, which you can serve over HTTP.
 
 Graphers is a work in progress, and currently not more than a proof of

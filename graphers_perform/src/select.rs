@@ -1,43 +1,47 @@
 use graphers_core::*;
 use serde::Serializer;
 use selection::Selection;
+use super::SelectResult;
+use select_error::SelectError;
 
 static NONE: Option<()> = None;
 
 pub trait Select {
-    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer;
+    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer;
 }
 
 impl<'a> Select for &'a TypeDefinition {
-    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {
                     "kind" => panic!("type kind is not implemented yet"),
                     "name" => {
-                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), self.name().as_str()))))
+                        let value = self.name().as_str();
+                        serializer.serialize_map_elt(&field.alias().as_str(), value).map_err(SelectError::from_serializer_error)
                     }
                     "description" => panic!("type description is not implemented yet"),
                     "fields" => {
-                        match *self {
+                        let value: Option<Vec<_>> = match *self {
                             &TypeDefinition::Object(ref object) => {
-                                let selection: Vec<_> = object.fields().iter().map(|f| Selection::new(context, f, field.selection_set())).collect();
-                                Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), selection))))
+                                Some(object.fields().iter().map(|f| Selection::new(context, f, field.selection_set())).collect())
                             }
                             &TypeDefinition::Interface(ref interface) => {
-                                let selection: Vec<_> = interface.fields().iter().map(|f| Selection::new(context, f, field.selection_set())).collect();
-                                Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), selection))))
+                                Some(interface.fields().iter().map(|f| Selection::new(context, f, field.selection_set())).collect())
                             }
                             _ => {
-                                Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), NONE))))
+                                None
                             }
-                        }
+                        };
+                        serializer.serialize_map_elt(&field.alias().as_str(), value).map_err(SelectError::from_serializer_error)
                     }
                     "interfaces" => panic!("type interfaces is not implemented yet"),
                     "possibleTypes" => panic!("type possibleTypes is not implemented yet"),
                     "enumValues" => panic!("type enumValues is not implemented yet"),
                     "inputFields" => panic!("type inputFields is not implemented yet"),
-                    "ofType" => Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), NONE)))),
+                    "ofType" => {
+                        serializer.serialize_map_elt(&field.alias().as_str(), NONE).map_err(SelectError::from_serializer_error)
+                    }
                     other => panic!("unknown field {}", other)
                 }
             }
@@ -47,19 +51,21 @@ impl<'a> Select for &'a TypeDefinition {
 }
 
 impl<'a> Select for &'a schema::Field {
-    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {
                     "name" => {
-                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), self.name().as_str()))))
+                        let target = self.name().as_str();
+
+                        serializer.serialize_map_elt(&field.alias().as_str(), target).map_err(SelectError::from_serializer_error)
                     }
                     "description" => panic!("field description is not implemented yet"),
                     "args" => panic!("field args is not implemented yet"),
                     "type" => {
                         let target = Selection::new(context, self.ty(), field.selection_set());
 
-                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), target))))
+                        serializer.serialize_map_elt(&field.alias().as_str(), target).map_err(SelectError::from_serializer_error)
                     }
                     "isDeprecated" => panic!("field isDeprecated is not implemented yet"),
                     "deprecationReason" => panic!("field deprecationReason is not implemented yet"),
@@ -72,13 +78,13 @@ impl<'a> Select for &'a schema::Field {
 }
 
 impl<'a> Select for &'a schema::Type {
-    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> Result<Option<()>, S::Error> where S: Serializer {
+    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {
                     "kind" => panic!("type kind is not implemented yet"),
                     "name" => {
-                        Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), self.as_str()))))
+                        serializer.serialize_map_elt(&field.alias().as_str(), self.as_str()).map_err(SelectError::from_serializer_error)
                     }
                     "description" => panic!("type description is not implemented yet"),
                     "fields" => {
@@ -87,7 +93,7 @@ impl<'a> Select for &'a schema::Type {
                                 let definition = context.resolve(name).expect("type not found");
                                 definition.select(context, selection, serializer)
                             }
-                            _ => Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), NONE))))
+                            _ => serializer.serialize_map_elt(&field.alias().as_str(), NONE).map_err(SelectError::from_serializer_error)
                         }
                     }
                     "interfaces" => panic!("type interfaces is not implemented yet"),
@@ -95,17 +101,16 @@ impl<'a> Select for &'a schema::Type {
                     "enumValues" => panic!("type enumValues is not implemented yet"),
                     "inputFields" => panic!("type inputFields is not implemented yet"),
                     "ofType" => {
-                        match *self {
+                        let value = match *self {
                             &schema::Type::List(ref ty) => {
-                                let selection = Selection::new(context, ty.as_ref(), field.selection_set());
-                                Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), selection))))
+                                Some(Selection::new(context, ty.as_ref(), field.selection_set()))
                             }
                             &schema::Type::NonNull(ref ty) => {
-                                let selection = Selection::new(context, ty.as_ref(), field.selection_set());
-                                Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), selection))))
+                                Some(Selection::new(context, ty.as_ref(), field.selection_set()))
                             }
-                            _ => Ok(Some(try!(serializer.serialize_map_elt(&field.alias().as_str(), NONE))))
-                        }
+                            _ => None
+                        };
+                        serializer.serialize_map_elt(&field.alias().as_str(), value).map_err(SelectError::from_serializer_error)
                     }
                     other => panic!("unknown field {}", other)
                 }

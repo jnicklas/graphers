@@ -1,6 +1,7 @@
 use field_name::FieldName;
 use query::{Selection, Argument};
 use value::Value;
+use missing_argument::MissingArgument;
 
 #[derive(Debug, Clone)]
 pub struct Field {
@@ -39,8 +40,8 @@ impl Field {
         &self.arguments
     }
 
-    pub fn require(&self, name: &FieldName) -> &Value {
-        self.get(name).expect("require argument")
+    pub fn require(&self, name: &FieldName) -> Result<&Value, MissingArgument> {
+        self.get(name).ok_or_else(|| MissingArgument::new(name.clone()))
     }
 
     pub fn get(&self, name: &FieldName) -> Option<&Value> {

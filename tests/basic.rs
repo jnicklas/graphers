@@ -35,6 +35,34 @@ fn test_basic_query() {
 }
 
 #[test]
+fn test_missing_required_argument() {
+    let doc = "
+        query {
+            person { first_name, }
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
+
+    assert_eq!(format!("{}", result), "SelectError: missing required argument id at line 0 column 0");
+}
+
+#[test]
+fn test_wrong_type_of_argument() {
+    let doc = "
+        query {
+            person(id: 123.33) { first_name, }
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
+
+    assert_eq!(format!("{}", result), "SelectError: cannot coerce the value Float(123.33) to String at line 0 column 0");
+}
+
+#[test]
 fn test_query_with_inline_fragment_on_interface() {
     let doc = "
         query {

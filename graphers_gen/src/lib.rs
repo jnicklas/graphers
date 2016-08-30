@@ -30,8 +30,16 @@ fn arguments(context: &Context, field: &schema::Field) -> String {
     field.arguments().iter().map(|a| {
         let rust_type = RustType::from(a.ty().clone());
         match rust_type {
-            RustType::Option(_) => format!("field.get(&FieldName::new(\"{}\")).and_then(|v| v.coerce::<{}>().unwrap())", a.name(), rust_type.to_rust(&context)),
-            _ => format!("field.require(&FieldName::new(\"{}\")).coerce::<{}>().unwrap()", a.name(), rust_type.to_rust(&context)),
+            RustType::Option(_) => {
+                format!("match field.get(&FieldName::new(\"{}\")) {{ Some(v) => try!(v.coerce::<{}>()), None => None }}",
+                        a.name(),
+                        rust_type.to_rust(&context))
+            }
+            _ => {
+                format!("try!(try!(field.require(&FieldName::new(\"{}\"))).coerce::<{}>())",
+                        a.name(),
+                        rust_type.to_rust(&context))
+            }
         }
     }).collect::<Vec<_>>().join(", ")
 }

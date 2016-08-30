@@ -3,5 +3,5 @@ mod coerce;
 
 pub use value::value::Value;
 pub use value::coerce::Coerce;
-pub use value::coerce::Error as CoerceError;
-pub use value::coerce::Result as CoerceResult;
+pub use value::coerce::Error as CoercionError;
+pub use value::coerce::Result as CoercionResult;

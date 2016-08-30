@@ -12,7 +12,7 @@ use std::borrow::Cow;
 pub struct NationalId(u32, u32);
 
 impl core::Coerce for NationalId {
-    fn coerce(value: &core::Value) -> core::value::CoerceResult<Self> {
+    fn coerce(value: &core::Value) -> core::value::CoercionResult<Self> {
         match value {
             &core::Value::String(ref s) => {
                 Ok(NationalId(s[0..6].parse().unwrap(), s[7..11].parse().unwrap()))

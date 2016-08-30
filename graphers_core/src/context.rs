@@ -22,31 +22,31 @@ impl Context {
     }
 
     pub fn objects(&self) -> Vec<&Object> {
-        self.types.iter().filter_map(|ty| ty.object()).collect()
+        self.types.iter().filter_map(|ty| ty.object().ok()).collect()
     }
 
     pub fn interfaces(&self) -> Vec<&Interface> {
-        self.types.iter().filter_map(|ty| ty.interface()).collect()
+        self.types.iter().filter_map(|ty| ty.interface().ok()).collect()
     }
 
     pub fn enums(&self) -> Vec<&Enum> {
-        self.types.iter().filter_map(|ty| ty.en()).collect()
+        self.types.iter().filter_map(|ty| ty.en().ok()).collect()
     }
 
     pub fn unions(&self) -> Vec<&Union> {
-        self.types.iter().filter_map(|ty| ty.union()).collect()
+        self.types.iter().filter_map(|ty| ty.union().ok()).collect()
     }
 
     pub fn input_objects(&self) -> Vec<&InputObject> {
-        self.types.iter().filter_map(|ty| ty.input_object()).collect()
+        self.types.iter().filter_map(|ty| ty.input_object().ok()).collect()
     }
 
     pub fn scalars(&self) -> Vec<&Scalar> {
-        self.types.iter().filter_map(|ty| ty.scalar()).collect()
+        self.types.iter().filter_map(|ty| ty.scalar().ok()).collect()
     }
 
     pub fn interfaces_of(&self, object: &Object) -> Vec<&Interface> {
-        object.interfaces().iter().filter_map(|i| self.resolve(i).and_then(|i| i.interface())).collect()
+        object.interfaces().iter().filter_map(|i| self.resolve(i).and_then(|i| i.interface().ok())).collect()
     }
 
     pub fn implementors_of(&self, interface: &Interface) -> Vec<&Object> {
@@ -70,6 +70,6 @@ impl Context {
     }
 
     pub fn resolve_object(&self, name: &TypeName) -> Option<&Object> {
-        self.resolve(name).and_then(|ty| ty.object())
+        self.resolve(name).and_then(|ty| ty.object().ok())
     }
 }

@@ -1,12 +1,13 @@
 use serde::Serializer;
-use graphers_core::{MissingArgument, MissingType, CoercionError};
+use graphers_core::{MissingArgument, MissingType, TypeKindError, CoercionError};
 use std::fmt;
 
 pub enum SelectError<'value, S> where S: Serializer {
     SerializationSerror(S::Error),
     MissingArgument(MissingArgument),
     MissingType(MissingType),
-    CoercionError(CoercionError<'value>)
+    TypeKindError(TypeKindError),
+    CoercionError(CoercionError<'value>),
 }
 
 impl<'value, S> fmt::Display for SelectError<'value, S> where S: Serializer {
@@ -15,6 +16,7 @@ impl<'value, S> fmt::Display for SelectError<'value, S> where S: Serializer {
             &SelectError::SerializationSerror(ref err) => write!(f, "{}", err),
             &SelectError::MissingArgument(ref err) => write!(f, "MissingArgument: {}", err),
             &SelectError::MissingType(ref err) => write!(f, "MissingType: {}", err),
+            &SelectError::TypeKindError(ref err) => write!(f, "TypeKindError: {}", err),
             &SelectError::CoercionError(ref err) => write!(f, "CoercionError: {}", err),
         }
     }
@@ -42,6 +44,12 @@ impl<'value, S> From<MissingArgument> for SelectError<'value, S> where S: Serial
 impl<'value, S> From<MissingType> for SelectError<'value, S> where S: Serializer {
     fn from(value: MissingType) -> Self {
         SelectError::MissingType(value)
+    }
+}
+
+impl<'value, S> From<TypeKindError> for SelectError<'value, S> where S: Serializer {
+    fn from(value: TypeKindError) -> Self {
+        SelectError::TypeKindError(value)
     }
 }
 

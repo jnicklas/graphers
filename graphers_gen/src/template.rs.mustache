@@ -180,7 +180,7 @@ impl<'a, T> Select for {{name}}Ref<'a, T> where T: 'a + Resolve{{name}} {
             },
             &query::Selection::FragmentSpread(ref name) => {
 				let definition = try!(context.require(name));
-				let fragment = definition.fragment().expect("type is not a fragment");
+				let fragment = try!(definition.fragment());
 
 				if fragment.on().as_str() == "{{name}}" {
 					let iter = fragment.selection_set().iter();

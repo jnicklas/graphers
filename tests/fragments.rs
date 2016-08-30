@@ -126,3 +126,24 @@ fn test_query_with_non_existent_fragment() {
 
     assert_eq!(format!("{}", result), "MissingType: missing type NoSuchFields at line 0 column 0");
 }
+
+#[test]
+fn test_query_with_fragment_which_is_not_a_fragment() {
+    let doc = "
+        query {
+            tagged(id: [\"foo\"]) {
+                id,
+                ... Person,
+            }
+        }
+
+        type Person {
+            id: Id!
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
+
+    assert_eq!(format!("{}", result), "TypeKindError: expected a type of kind FRAGMENT, found a type of kind OBJECT at line 0 column 0");
+}

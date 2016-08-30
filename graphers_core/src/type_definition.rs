@@ -1,6 +1,9 @@
 use type_name::TypeName;
+use type_kind::TypeKind;
 use schema::{Object, Interface, Union, Enum, InputObject, Scalar};
 use query::Fragment;
+use std::fmt;
+use std::error::Error as StdError;
 
 #[derive(Debug, Clone)]
 pub enum TypeDefinition {
@@ -13,7 +16,37 @@ pub enum TypeDefinition {
     Fragment(Fragment),
 }
 
+#[derive(Debug)]
+pub struct TypeKindError {
+    expected: TypeKind,
+    actual: TypeKind,
+}
+
+impl fmt::Display for TypeKindError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "expected a type of kind {}, found a type of kind {}", self.expected, self.actual)
+    }
+}
+
+impl StdError for TypeKindError {
+    fn description(&self) -> &str {
+        "TypeKindError"
+    }
+}
+
 impl TypeDefinition {
+    pub fn kind(&self) -> TypeKind {
+        match self {
+            &TypeDefinition::Scalar(_) => TypeKind::Scalar,
+            &TypeDefinition::Object(_) => TypeKind::Object,
+            &TypeDefinition::Interface(_) => TypeKind::Interface,
+            &TypeDefinition::Fragment(_) => TypeKind::Fragment,
+            &TypeDefinition::Union(_) => TypeKind::Union,
+            &TypeDefinition::Enum(_) => TypeKind::Enum,
+            &TypeDefinition::InputObject(_) => TypeKind::InputObject,
+        }
+    }
+
     pub fn name(&self) -> &TypeName {
         match self {
             &TypeDefinition::Scalar(ref scalar) => scalar.name(),
@@ -26,59 +59,59 @@ impl TypeDefinition {
         }
     }
 
-    pub fn object(&self) -> Option<&Object> {
+    pub fn object(&self) -> Result<&Object, TypeKindError> {
         if let &TypeDefinition::Object(ref object) = self {
-            Some(object)
+            Ok(object)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::Object, actual: self.kind() })
         }
     }
 
-    pub fn interface(&self) -> Option<&Interface> {
+    pub fn interface(&self) -> Result<&Interface, TypeKindError> {
         if let &TypeDefinition::Interface(ref interface) = self {
-            Some(interface)
+            Ok(interface)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::Interface, actual: self.kind() })
         }
     }
 
-    pub fn union(&self) -> Option<&Union> {
+    pub fn union(&self) -> Result<&Union, TypeKindError> {
         if let &TypeDefinition::Union(ref union) = self {
-            Some(union)
+            Ok(union)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::Union, actual: self.kind() })
         }
     }
 
-    pub fn fragment(&self) -> Option<&Fragment> {
+    pub fn fragment(&self) -> Result<&Fragment, TypeKindError> {
         if let &TypeDefinition::Fragment(ref fragment) = self {
-            Some(fragment)
+            Ok(fragment)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::Fragment, actual: self.kind() })
         }
     }
 
-    pub fn en(&self) -> Option<&Enum> {
+    pub fn en(&self) -> Result<&Enum, TypeKindError> {
         if let &TypeDefinition::Enum(ref en) = self {
-            Some(en)
+            Ok(en)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::Enum, actual: self.kind() })
         }
     }
 
-    pub fn input_object(&self) -> Option<&InputObject> {
+    pub fn input_object(&self) -> Result<&InputObject, TypeKindError> {
         if let &TypeDefinition::InputObject(ref input_object) = self {
-            Some(input_object)
+            Ok(input_object)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::InputObject, actual: self.kind() })
         }
     }
 
-    pub fn scalar(&self) -> Option<&Scalar> {
+    pub fn scalar(&self) -> Result<&Scalar, TypeKindError> {
         if let &TypeDefinition::Scalar(ref scalar) = self {
-            Some(scalar)
+            Ok(scalar)
         } else {
-            None
+            Err(TypeKindError { expected: TypeKind::Scalar, actual: self.kind() })
         }
     }
 }

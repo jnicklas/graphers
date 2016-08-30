@@ -109,3 +109,20 @@ fn test_query_with_fragment_on_interface() {
     assert_eq!(tagged[0].find("first_name"), Some(&Value::String(String::from("Jonas"))));
     assert_eq!(tagged[1].find("title"), Some(&Value::String(String::from("Hello GraphQL"))));
 }
+
+#[test]
+fn test_query_with_non_existent_fragment() {
+    let doc = "
+        query {
+            tagged(id: [\"foo\"]) {
+                id,
+                ... NoSuchFields,
+            }
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
+
+    assert_eq!(format!("{}", result), "MissingType: missing type NoSuchFields at line 0 column 0");
+}

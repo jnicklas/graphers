@@ -65,6 +65,10 @@ impl Context {
         self.types.iter().find(|ty| ty.name() == name)
     }
 
+    pub fn require(&self, name: &TypeName) -> Result<&TypeDefinition, MissingType> {
+        self.resolve(name).ok_or_else(|| MissingType::new(name.clone()))
+    }
+
     pub fn resolve_object(&self, name: &TypeName) -> Option<&Object> {
         self.resolve(name).and_then(|ty| ty.object())
     }

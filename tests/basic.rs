@@ -45,7 +45,7 @@ fn test_missing_required_argument() {
 
     let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
 
-    assert_eq!(format!("{}", result), "SelectError: missing required argument id at line 0 column 0");
+    assert_eq!(format!("{}", result), "MissingArgument: missing required argument id at line 0 column 0");
 }
 
 #[test]
@@ -59,7 +59,7 @@ fn test_wrong_type_of_argument() {
 
     let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
 
-    assert_eq!(format!("{}", result), "SelectError: cannot coerce the value Float(123.33) to String at line 0 column 0");
+    assert_eq!(format!("{}", result), "CoercionError: cannot coerce the value Float(123.33) to String at line 0 column 0");
 }
 
 #[test]

@@ -24,6 +24,9 @@ OperationDefinition: Definition = {
             OperationType::Query => Definition::Query(query::Query::new(fields)),
             _ => panic!("mutation is not yet supported"),
         }
+    },
+    <fields:SelectionSet> => {
+        Definition::Query(query::Query::new(fields))
     }
 };
 

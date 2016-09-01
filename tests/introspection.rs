@@ -95,3 +95,31 @@ fn test_reflect_on_non_existent_type() {
 
     assert_eq!(value.find("__type"), Some(&Value::Null));
 }
+
+#[test]
+fn test_reflect_on_type_without_name_argument() {
+    let doc = "
+        query {
+            __type { name }
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
+
+    assert_eq!(format!("{}", result), "MissingArgument: missing required argument name at line 0 column 0");
+}
+
+#[test]
+fn test_reflect_on_type_with_name_argument_with_wrong_type() {
+    let doc = "
+        query {
+            __type(name: 123) { name }
+        }
+    ";
+    let context = graphers::parse(doc).expect("should be valid");
+
+    let result = serde_json::to_string(&Schema.query(&context)).unwrap_err();
+
+    assert_eq!(format!("{}", result), "CoercionError: cannot coerce the value Int(123) to String at line 0 column 0");
+}

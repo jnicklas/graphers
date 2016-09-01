@@ -90,7 +90,7 @@ impl<'a> Select for &'a schema::Type {
                     "fields" => {
                         match *self {
                             &schema::Type::NamedType(ref name) => {
-                                let definition = context.resolve(name).expect("type not found");
+                                let definition = try!(context.require(name));
                                 definition.select(context, selection, serializer)
                             }
                             _ => serializer.serialize_map_elt(&field.alias().as_str(), NONE).map_err(SelectError::from_serializer_error)

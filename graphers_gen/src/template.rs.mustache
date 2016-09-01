@@ -1,4 +1,5 @@
 extern crate graphers_core;
+extern crate graphers_parse;
 extern crate graphers_perform;
 extern crate serde;
 
@@ -25,7 +26,7 @@ pub struct QueryResult<'a, T>(Selection<'a, {{name}}<T>>) where T: 'static + Res
 ////////////////////////////////////////////////////////////////////////////////
 
 pub fn reflect() -> graphers_core::Context {
-    {{{introspect}}}
+    graphers_parse::parse({{{introspect}}}).unwrap()
 }
 
 ////////////////////////////////////////////////////////////////////////////////

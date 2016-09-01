@@ -4,9 +4,7 @@ extern crate graphers_parse as parse;
 extern crate mustache;
 
 mod rust_type;
-mod to_rust;
 
-use to_rust::ToRust;
 use std::io::Write;
 use std::path::Path;
 use rust_type::RustType;
@@ -230,7 +228,7 @@ impl build::Processor for Processor {
                 builder = builder.insert_vec("enums", |builder| { self.enums(&context, builder) });
                 builder = builder.insert_vec("input_objects", |builder| { self.input_objects(&context, builder) });
                 builder = builder.insert_vec("scalars", |builder| { self.scalars(&context, builder) });
-                builder = builder.insert_str("introspect", context.to_rust());
+                builder = builder.insert_str("introspect", format!("{:?}", input.text()));
 
                 if let Some(query) = context.schema().and_then(|s| s.query()) {
                     builder = builder.insert_vec("query_root", |builder| {

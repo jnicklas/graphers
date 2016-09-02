@@ -6,6 +6,7 @@ mod schema;
 pub use self::schema::reflect;
 pub use self::schema::Country;
 pub use self::schema::Location;
+pub use self::schema::CoordinateSystem;
 use std::borrow::Cow;
 
 #[derive(Debug, Clone)]

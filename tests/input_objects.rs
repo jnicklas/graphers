@@ -19,7 +19,7 @@ fn enum_input_object_valid_coercion() {
 
     let value = graphers::Value::Object(map);
 
-    assert_eq!(value.coerce::<query::Location>(), Ok(query::Location { lat: 12, lng: 20 }));
+    assert_eq!(value.coerce::<query::Location>(), Ok(query::Location { lat: 12, lng: 20, coordinate_system: query::CoordinateSystem::WSG64 }));
 }
 
 #[test]

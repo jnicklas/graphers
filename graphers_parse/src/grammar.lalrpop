@@ -218,7 +218,10 @@ InputObjectTypeDefinition: Definition = {
 
 InputValueDefinition: schema::InputObjectField = {
     <name:FieldName> ":" <ty:Type> => {
-        schema::InputObjectField::new(name, ty)
+        schema::InputObjectField::new(name, ty, None)
+    },
+    <name:FieldName> ":" <ty:Type> "=" <value:Value> => {
+        schema::InputObjectField::new(name, ty, Some(value))
     }
 };
 

@@ -7,7 +7,7 @@ mod selection;
 mod selection_struct_visitor;
 mod any;
 
-pub type SelectResult<'value, S> = Result<(), SelectError<'value, S>>;
+pub type SelectResult<S> = Result<(), SelectError<S>>;
 
 pub use select::Select;
 pub use select_error::SelectError;

@@ -7,11 +7,11 @@ use select_error::SelectError;
 static NONE: Option<()> = None;
 
 pub trait Select {
-    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer;
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> SelectResult<S> where S: Serializer;
 }
 
 impl<'a> Select for &'a TypeDefinition {
-    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> SelectResult<S> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {
@@ -51,7 +51,7 @@ impl<'a> Select for &'a TypeDefinition {
 }
 
 impl<'a> Select for &'a schema::Field {
-    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> SelectResult<S> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {
@@ -78,7 +78,7 @@ impl<'a> Select for &'a schema::Field {
 }
 
 impl<'a> Select for &'a schema::Type {
-    fn select<'value, S>(&self, context: &Context, selection: &'value query::Selection, serializer: &mut S) -> SelectResult<'value, S> where S: Serializer {
+    fn select<S>(&self, context: &Context, selection: &query::Selection, serializer: &mut S) -> SelectResult<S> where S: Serializer {
         match selection {
             &query::Selection::Field(ref field) => {
                 match field.name().as_str() {

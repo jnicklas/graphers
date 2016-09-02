@@ -2,15 +2,15 @@ use serde::Serializer;
 use graphers_core::{MissingArgument, MissingType, TypeKindError, CoercionError};
 use std::fmt;
 
-pub enum SelectError<'value, S> where S: Serializer {
+pub enum SelectError<S> where S: Serializer {
     SerializationSerror(S::Error),
     MissingArgument(MissingArgument),
     MissingType(MissingType),
     TypeKindError(TypeKindError),
-    CoercionError(CoercionError<'value>),
+    CoercionError(CoercionError),
 }
 
-impl<'value, S> fmt::Display for SelectError<'value, S> where S: Serializer {
+impl<S> fmt::Display for SelectError<S> where S: Serializer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &SelectError::SerializationSerror(ref err) => write!(f, "{}", err),
@@ -22,7 +22,7 @@ impl<'value, S> fmt::Display for SelectError<'value, S> where S: Serializer {
     }
 }
 
-impl<'value, S> SelectError<'value, S> where S: Serializer {
+impl<S> SelectError<S> where S: Serializer {
     pub fn to_serializer_error(self) -> S::Error {
         match self {
             SelectError::SerializationSerror(err) => err,
@@ -35,26 +35,26 @@ impl<'value, S> SelectError<'value, S> where S: Serializer {
     }
 }
 
-impl<'value, S> From<MissingArgument> for SelectError<'value, S> where S: Serializer {
+impl<S> From<MissingArgument> for SelectError<S> where S: Serializer {
     fn from(value: MissingArgument) -> Self {
         SelectError::MissingArgument(value)
     }
 }
 
-impl<'value, S> From<MissingType> for SelectError<'value, S> where S: Serializer {
+impl<S> From<MissingType> for SelectError<S> where S: Serializer {
     fn from(value: MissingType) -> Self {
         SelectError::MissingType(value)
     }
 }
 
-impl<'value, S> From<TypeKindError> for SelectError<'value, S> where S: Serializer {
+impl<S> From<TypeKindError> for SelectError<S> where S: Serializer {
     fn from(value: TypeKindError) -> Self {
         SelectError::TypeKindError(value)
     }
 }
 
-impl<'value, S> From<CoercionError<'value>> for SelectError<'value, S> where S: Serializer {
-    fn from(value: CoercionError<'value>) -> Self {
+impl<S> From<CoercionError> for SelectError<S> where S: Serializer {
+    fn from(value: CoercionError) -> Self {
         SelectError::CoercionError(value)
     }
 }

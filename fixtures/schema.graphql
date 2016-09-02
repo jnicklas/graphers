@@ -41,6 +41,9 @@ enum Country { SWEDEN GERMANY UGANDA }
 input Location {
     lat: Int!
     lng: Int!
+    coordinate_system: CoordinateSystem! = WSG64
 }
 
 scalar NationalId
+
+enum CoordinateSystem { WSG64, MOO }
